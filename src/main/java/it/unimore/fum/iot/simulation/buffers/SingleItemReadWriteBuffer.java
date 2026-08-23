@@ -17,4 +17,11 @@ public class SingleItemReadWriteBuffer<T> extends ReadWriteBuffer<T> {
     public void write(T item) {
         this.item = item;
     }
+
+    @Override
+    public String toString() {
+        return "SingleItemReadWriteBuffer{" +
+                "item=" + item +
+                '}';
+    }
 }
