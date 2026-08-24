@@ -22,6 +22,7 @@ public class SimulationOrchestrator {
         logger.info("Simulations initialization");
         int updateFrequency = 60;
         int numCarriageSeats = 52;
+        int numCarriageToilets = 2;
 
         TemperatureSimulationSimulationDefaults tempDefault = new TemperatureSimulationSimulationDefaults(
                 30.0, 40.0, 0.20,
@@ -29,7 +30,7 @@ public class SimulationOrchestrator {
         );
         this.temperatureSimulationModule = new TemperatureSimulationModule(tempDefault,  updateFrequency);
 
-        Carriage carriage = new Carriage(numCarriageSeats);
+        Carriage carriage = new Carriage(numCarriageSeats, numCarriageToilets);
         PassengersSimulationDefaults passengersDefault = new PassengersSimulationDefaults(
                 numCarriageSeats, true, 3
         );
