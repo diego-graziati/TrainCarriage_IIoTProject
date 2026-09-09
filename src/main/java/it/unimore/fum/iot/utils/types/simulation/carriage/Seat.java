@@ -1,33 +1,26 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
+import it.unimore.fum.iot.utils.types.simulation.Paths;
 import it.unimore.fum.iot.utils.types.simulation.passenger.Passenger;
 
 public class Seat {
 
-    private boolean isThePowerOutletOn;
-    private boolean isTheLampOn;
     private Passenger seatedPassenger;
+    private final PowerOutlet powerOutlet;
+    private final Lamp lamp;
 
     public Seat() {
-        this.isThePowerOutletOn = false;
-        this.isTheLampOn = false;
         this.seatedPassenger = null;
+        this.powerOutlet = new PowerOutlet(Paths.Config.Carriage.Seat.POWER_OUTLET);
+        this.lamp = new Lamp(Paths.Config.Carriage.Seat.LAMP);
     }
 
-    public boolean isThePowerOutletOn() {
-        return isThePowerOutletOn;
+    public PowerOutlet getPowerOutlet() {
+        return powerOutlet;
     }
 
-    public void setThePowerOutletOn(boolean thePowerOutletOn) {
-        isThePowerOutletOn = thePowerOutletOn;
-    }
-
-    public boolean isTheLampOn() {
-        return isTheLampOn;
-    }
-
-    public void setTheLampOn(boolean theLampOn) {
-        isTheLampOn = theLampOn;
+    public Lamp getLamp() {
+        return lamp;
     }
 
     public Passenger getSeatedPassenger() {
@@ -36,5 +29,14 @@ public class Seat {
 
     public void setSeatedPassenger(Passenger seatedPassenger) {
         this.seatedPassenger = seatedPassenger;
+    }
+
+    @Override
+    public String toString() {
+        return "Seat{" +
+                "seatedPassenger=" + seatedPassenger +
+                ", powerOutlet=" + powerOutlet +
+                ", lamp=" + lamp +
+                '}';
     }
 }

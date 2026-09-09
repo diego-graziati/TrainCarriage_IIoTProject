@@ -65,7 +65,9 @@ public class Passenger {
                 "name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
                 ", age=" + age +
+                ", boardingTimestamp=" + boardingTimestamp +
                 ", selectedTask=" + selectedTask +
+                ", uuid=" +  uuid +
                 '}';
     }
 }

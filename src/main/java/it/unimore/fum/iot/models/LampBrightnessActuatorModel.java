@@ -1,10 +1,10 @@
 package it.unimore.fum.iot.models;
 
-import it.unimore.fum.iot.utils.types.BrigthessLevelsEnum;
+import it.unimore.fum.iot.utils.types.BrightnessLevelsEnum;
 
 public class LampBrightnessActuatorModel {
     private long timestamp;
-    private BrigthessLevelsEnum brightnessLevel;
+    private BrightnessLevelsEnum brightnessLevel;
     private double lowBrightness;
     private double mediumBrightness;
     private double highBrightness;
@@ -14,7 +14,7 @@ public class LampBrightnessActuatorModel {
     //TODO: values should be obtained through a simulation and config files, not fixed values!
     public LampBrightnessActuatorModel() {
         this.timestamp = System.currentTimeMillis();
-        this.brightnessLevel = BrigthessLevelsEnum.LOW;
+        this.brightnessLevel = BrightnessLevelsEnum.LOW;
         this.lowBrightness = 10.0;
         this.mediumBrightness = 20.0;
         this.highBrightness = 30.0;
@@ -29,11 +29,11 @@ public class LampBrightnessActuatorModel {
         this.timestamp = timestamp;
     }
 
-    public BrigthessLevelsEnum getBrightnessLevel() {
+    public BrightnessLevelsEnum getBrightnessLevel() {
         return brightnessLevel;
     }
 
-    public void setBrightnessLevel(BrigthessLevelsEnum brightnessLevel) {
+    public void setBrightnessLevel(BrightnessLevelsEnum brightnessLevel) {
         this.brightnessLevel = brightnessLevel;
     }
 

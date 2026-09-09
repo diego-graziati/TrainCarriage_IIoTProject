@@ -1,5 +1,5 @@
 package it.unimore.fum.iot.utils.types;
 
-public enum BrigthessLevelsEnum {
+public enum BrightnessLevelsEnum {
     LOW, MEDIUM, HIGH;
 }

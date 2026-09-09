@@ -1,55 +1,48 @@
 package it.unimore.fum.iot.simulation;
 
+import it.unimore.fum.iot.Main;
+import it.unimore.fum.iot.simulation.simmodules.CarriageSimulationModule;
 import it.unimore.fum.iot.simulation.simmodules.PassengersSimulationModule;
-import it.unimore.fum.iot.simulation.simmodules.TemperatureSimulationModule;
+import it.unimore.fum.iot.simulation.simmodules.TemperatureHumiditySimulationModule;
+import it.unimore.fum.iot.utils.types.collectors.CarriageBuffersCollector;
+import it.unimore.fum.iot.utils.types.collectors.TemperatureHumidityBuffersCollector;
 import it.unimore.fum.iot.utils.types.simulation.carriage.Carriage;
-import it.unimore.fum.iot.utils.types.simulation.defaults.PassengersSimulationDefaults;
-import it.unimore.fum.iot.utils.types.simulation.defaults.TemperatureSimulationSimulationDefaults;
-
-import java.util.logging.Logger;
 
 public class SimulationOrchestrator {
 
-    private final TemperatureSimulationModule temperatureSimulationModule;
+    private final TemperatureHumiditySimulationModule temperatureHumiditySimulationModule;
     private final PassengersSimulationModule passengersSimulationModule;
-    private final Logger logger;
+    private final CarriageSimulationModule carriageSimulationModule;
 
     public SimulationOrchestrator() {
-        this.logger = Logger.getLogger(SimulationOrchestrator.class.getName());
-
         //TESTING IF SIMULATION IS WORKING
-        logger.warning("Simulation testing! These won't be the final outputs");
-        logger.info("Simulations initialization");
+        Main.MAIN_LOGGER.info("Simulations initialization");
         int updateFrequency = 60;
-        int numCarriageSeats = 52;
-        int numCarriageToilets = 2;
 
-        TemperatureSimulationSimulationDefaults tempDefault = new TemperatureSimulationSimulationDefaults(
-                30.0, 40.0, 0.20,
-                true, 3
-        );
-        this.temperatureSimulationModule = new TemperatureSimulationModule(tempDefault,  updateFrequency);
+        Carriage carriage = new Carriage();
+        CarriageBuffersCollector carriageBuffersCollector = new CarriageBuffersCollector(carriage);
+        TemperatureHumidityBuffersCollector temperatureHumidityBuffersCollector = new TemperatureHumidityBuffersCollector();
+        this.temperatureHumiditySimulationModule = new TemperatureHumiditySimulationModule(carriage,
+                temperatureHumidityBuffersCollector, updateFrequency);
+        this.passengersSimulationModule = new PassengersSimulationModule(carriage, updateFrequency);
+        this.carriageSimulationModule = new CarriageSimulationModule(carriage, carriageBuffersCollector, updateFrequency);
 
-        Carriage carriage = new Carriage(numCarriageSeats, numCarriageToilets);
-        PassengersSimulationDefaults passengersDefault = new PassengersSimulationDefaults(
-                numCarriageSeats, true, 3
-        );
-        this.passengersSimulationModule = new PassengersSimulationModule(passengersDefault, carriage, updateFrequency);
-
-        logger.info("All simulations have been successfully initialized");
+        Main.MAIN_LOGGER.info("All simulations have been successfully initialized");
     }
 
     public void start() {
-        this.logger.info("Starting simulations");
-        this.temperatureSimulationModule.start();
+        Main.MAIN_LOGGER.info("Starting simulations");
+        this.temperatureHumiditySimulationModule.start();
         this.passengersSimulationModule.start();
-        this.logger.info("All simulations have been successfully started");
+        this.carriageSimulationModule.start();
+        Main.MAIN_LOGGER.info("All simulations have been successfully started");
     }
 
     public void stop() {
-        this.logger.info("Stopping simulations");
-        this.temperatureSimulationModule.stop();
+        Main.MAIN_LOGGER.info("Stopping simulations");
+        this.temperatureHumiditySimulationModule.stop();
         this.passengersSimulationModule.stop();
-        this.logger.info("All simulations have been successfully stopped");
+        this.carriageSimulationModule.stop();
+        Main.MAIN_LOGGER.info("All simulations have been successfully stopped");
     }
 }

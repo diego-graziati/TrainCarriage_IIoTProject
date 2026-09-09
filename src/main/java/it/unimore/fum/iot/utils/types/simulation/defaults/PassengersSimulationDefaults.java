@@ -1,14 +1,15 @@
 package it.unimore.fum.iot.utils.types.simulation.defaults;
 
+import it.unimore.fum.iot.utils.tools.JsonConfigLoader;
+
 public class PassengersSimulationDefaults implements IBaseSimulationDefaults {
 
-    public final int NUM_CARRIAGE_SEATINGS;
-    public final boolean ARE_DOORS_LOCKED_BY_DEFAULT;
-    public final int NUM_DOORS;
+    public final int MAX_NUMBER_OF_ONBOARD_PASSENGERS;
 
-    public PassengersSimulationDefaults(int NUM_CARRIAGE_SEATINGS, boolean ARE_DOORS_LOCKED_BY_DEFAULT, int NUM_DOORS) {
-        this.NUM_CARRIAGE_SEATINGS = NUM_CARRIAGE_SEATINGS;
-        this.ARE_DOORS_LOCKED_BY_DEFAULT = ARE_DOORS_LOCKED_BY_DEFAULT;
-        this.NUM_DOORS = NUM_DOORS;
+    public PassengersSimulationDefaults(String configPath) {
+        JsonConfigLoader<PassengersSimulationDefaults> loader = new JsonConfigLoader<>(configPath, PassengersSimulationDefaults.class);
+        PassengersSimulationDefaults defaults = loader.load();
+
+        this.MAX_NUMBER_OF_ONBOARD_PASSENGERS = defaults.MAX_NUMBER_OF_ONBOARD_PASSENGERS;
     }
 }
