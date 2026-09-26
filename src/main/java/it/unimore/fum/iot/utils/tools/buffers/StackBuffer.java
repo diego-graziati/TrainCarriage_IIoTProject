@@ -1,4 +1,4 @@
-package it.unimore.fum.iot.simulation.buffers;
+package it.unimore.fum.iot.utils.tools.buffers;
 
 import java.util.ArrayList;
 import java.util.List;

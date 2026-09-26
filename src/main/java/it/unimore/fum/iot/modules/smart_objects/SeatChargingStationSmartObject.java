@@ -4,12 +4,21 @@ import it.unimore.fum.iot.modules.SmartObjectModule;
 import it.unimore.fum.iot.resources.BatteryChargeSensorResource;
 import it.unimore.fum.iot.resources.EnergyConsumptionSensorResource;
 import it.unimore.fum.iot.resources.SeatChargerActuatorResource;
+import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
 
 public class SeatChargingStationSmartObject extends SmartObjectModule {
     public SeatChargingStationSmartObject() {
+        this(null, null, null, "", 1);
+    }
+
+    public SeatChargingStationSmartObject(SingleItemReadWriteBuffer<Boolean> onOffPowerOutlet,
+                                          SingleItemReadWriteBuffer<Double> batteryCharge,
+                                          SingleItemReadWriteBuffer<Double> energyConsumption,
+                                          String subfix,
+                                          int deviceIndex) {
         super();
 
-        String deviceId = "seat-charging-station-0001";
+        String deviceId = String.format("seat-charging-station-%s-%04d", subfix, deviceIndex);
 
         this.add(new SeatChargerActuatorResource("seat-charger", deviceId));
         this.add(new BatteryChargeSensorResource("battery-charge", deviceId));

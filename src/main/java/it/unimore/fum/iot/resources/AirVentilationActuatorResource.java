@@ -50,7 +50,7 @@ public class AirVentilationActuatorResource extends CoapResource {
             senMLRecord.setBver(ACTUATOR_VERSION);
             senMLRecord.setN(this.getName());
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setVb(this.model.isOpen());
+            senMLRecord.setVb(this.model.isOn());
 
             senMLPack.add(senMLRecord);
 

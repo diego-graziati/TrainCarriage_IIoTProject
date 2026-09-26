@@ -4,12 +4,21 @@ import it.unimore.fum.iot.modules.SmartObjectModule;
 import it.unimore.fum.iot.resources.BatteryChargeSensorResource;
 import it.unimore.fum.iot.resources.DoorLockActuatorResource;
 import it.unimore.fum.iot.resources.EnergyConsumptionSensorResource;
+import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
 
 public class DoorLockSmartObject extends SmartObjectModule {
     public DoorLockSmartObject() {
+        this(null, null, null, "", 1);
+    }
+
+    public DoorLockSmartObject(SingleItemReadWriteBuffer<Boolean> lockDoor,
+                               SingleItemReadWriteBuffer<Double> batteryCharge,
+                               SingleItemReadWriteBuffer<Double> energyConsumption,
+                               String subfix,
+                               int deviceIndex) {
         super();
 
-        String deviceId = "door-lock-0001";
+        String deviceId = String.format("door-lock-%s-%04d", subfix, deviceIndex);
 
         this.add(new DoorLockActuatorResource("door-lock", deviceId));
         this.add(new BatteryChargeSensorResource("battery-charge", deviceId));

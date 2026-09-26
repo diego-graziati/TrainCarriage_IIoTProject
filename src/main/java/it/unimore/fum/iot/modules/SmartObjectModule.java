@@ -10,4 +10,13 @@ public abstract class SmartObjectModule extends CoapServer implements ISmartObje
     public static void main(String[] args) {
 
     }
+
+    public void launch() {
+        this.start();
+
+        this.getRoot().getChildren().forEach(resource -> {
+            System.out.printf("Resource %s -> URI: %s (Observable: %b)%n", resource.getName(),
+                    resource.getURI(), resource.isObservable());
+        });
+    }
 }

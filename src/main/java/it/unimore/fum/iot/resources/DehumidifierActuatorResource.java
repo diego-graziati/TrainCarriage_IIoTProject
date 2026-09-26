@@ -2,6 +2,7 @@ package it.unimore.fum.iot.resources;
 
 import com.google.gson.Gson;
 import it.unimore.fum.iot.models.DehumidifierActuatorModel;
+import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -20,15 +21,18 @@ public class DehumidifierActuatorResource extends CoapResource {
     private String devideId = null;
     private Gson gson = null;
 
-    public DehumidifierActuatorResource(String name, String deviceId) {
+    private final SingleItemReadWriteBuffer<Boolean> onOffDehumidifier;
+
+    public DehumidifierActuatorResource(String name, String deviceId, SingleItemReadWriteBuffer<Boolean> onOffDehumidifier) {
         super(name);
         this.devideId = deviceId;
+        this.onOffDehumidifier = onOffDehumidifier;
         this.init();
     }
 
     private void init() {
         this.gson = new Gson();
-        this.model = new DehumidifierActuatorModel();
+        this.model = new DehumidifierActuatorModel(this.onOffDehumidifier);
 
         setObservable(true);
         setObserveType(CoAP.Type.CON);
@@ -49,7 +53,7 @@ public class DehumidifierActuatorResource extends CoapResource {
             senMLRecord.setN(this.getName());
             senMLRecord.setBver(ACTUATOR_VERSION);
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setV(this.model.getHumidity());
+            senMLRecord.setV(this.model.getTargetHumidity());
 
             senMLPack.add(senMLRecord);
 

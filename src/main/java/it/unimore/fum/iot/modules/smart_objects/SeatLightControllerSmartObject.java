@@ -2,12 +2,23 @@ package it.unimore.fum.iot.modules.smart_objects;
 
 import it.unimore.fum.iot.modules.SmartObjectModule;
 import it.unimore.fum.iot.resources.*;
+import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
+import it.unimore.fum.iot.utils.types.BrightnessLevelsEnum;
 
 public class SeatLightControllerSmartObject extends SmartObjectModule {
     public SeatLightControllerSmartObject() {
+        this(null, null, null, null, "", 1);
+    }
+
+    public SeatLightControllerSmartObject(SingleItemReadWriteBuffer<Boolean> onOffSeatLight,
+                                          SingleItemReadWriteBuffer<BrightnessLevelsEnum> brightness,
+                                          SingleItemReadWriteBuffer<Double> batteryCharge,
+                                          SingleItemReadWriteBuffer<Double> energyConsumption,
+                                          String subfix,
+                                          int deviceIndex) {
         super();
 
-        String deviceId = "seat-light-controller-0001";
+        String deviceId = String.format("seat-light-controller-%s-%04d", subfix, deviceIndex);
 
         this.add(new SwitchOnOffActuatorResource("switch-on-off", deviceId));
         this.add(new LampBrightessActuatorResource("lamp-brightness", deviceId));

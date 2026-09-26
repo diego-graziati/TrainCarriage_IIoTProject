@@ -2,14 +2,14 @@ package it.unimore.fum.iot.models;
 
 public class AirTemperatureActuatorModel {
     private long timestamp;
-    private double temperature;
-    private String temperatureUnit;
+    private double targetTemperature;
+    private String targetTemperatureUnit;
 
     //TODO: values should be obtained through a simulation and config files, not fixed values!
     public AirTemperatureActuatorModel() {
         this.timestamp = System.currentTimeMillis();
-        this.temperature = 30.0;
-        this.temperatureUnit = "Cel";
+        this.targetTemperature = 30.0;
+        this.targetTemperatureUnit = "Cel";
     }
 
     public long getTimestamp() {
@@ -20,28 +20,28 @@ public class AirTemperatureActuatorModel {
         this.timestamp = timestamp;
     }
 
-    public double getTemperature() {
-        return temperature;
+    public double getTargetTemperature() {
+        return targetTemperature;
     }
 
-    public void setTemperature(double temperature) {
-        this.temperature = temperature;
+    public void setTargetTemperature(double targetTemperature) {
+        this.targetTemperature = targetTemperature;
     }
 
-    public String getTemperatureUnit() {
-        return temperatureUnit;
+    public String getTargetTemperatureUnit() {
+        return targetTemperatureUnit;
     }
 
-    public void setTemperatureUnit(String temperatureUnit) {
-        this.temperatureUnit = temperatureUnit;
+    public void setTargetTemperatureUnit(String targetTemperatureUnit) {
+        this.targetTemperatureUnit = targetTemperatureUnit;
     }
 
     @Override
     public String toString() {
         return "AirTemperatureActuatorModel{" +
                 "timestamp=" + timestamp +
-                ", temperature=" + temperature +
-                ", temperatureUnit='" + temperatureUnit + '\'' +
+                ", temperature=" + targetTemperature +
+                ", temperatureUnit='" + targetTemperatureUnit + '\'' +
                 '}';
     }
 }

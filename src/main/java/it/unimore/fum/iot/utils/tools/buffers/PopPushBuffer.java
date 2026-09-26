@@ -1,4 +1,4 @@
-package it.unimore.fum.iot.simulation.buffers;
+package it.unimore.fum.iot.utils.tools.buffers;
 
 public abstract class PopPushBuffer<T> implements IBuffer {
     public abstract T pop();

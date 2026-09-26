@@ -1,8 +1,6 @@
 package it.unimore.fum.iot.utils.types.collectors;
 
-import it.unimore.fum.iot.simulation.buffers.BufferReader;
-import it.unimore.fum.iot.simulation.buffers.BufferWriter;
-import it.unimore.fum.iot.simulation.buffers.SingleItemReadWriteBuffer;
+import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
 import it.unimore.fum.iot.utils.types.BrightnessLevelsEnum;
 import it.unimore.fum.iot.utils.types.simulation.carriage.Carriage;
 import org.javatuples.Pair;
@@ -12,35 +10,37 @@ import java.util.List;
 
 public class CarriageBuffersCollector {
 
-    private final List<BufferWriter<Pair<Integer, Integer>>> doorsInOutBufferWriters;
-    private final List<BufferWriter<Boolean>> doorsOpenCloseBufferWriters;
-    private final List<BufferWriter<Double>> doorsChargesBufferWriters;
-    private final List<BufferWriter<Double>> doorsLocksChargesBufferWriters;
-    private final List<BufferWriter<Double>> doorsPresenceMonitorsChargesBufferWriters;
-    private final List<BufferWriter<Double>> carriageLightsChargesBufferWriters;
-    private final List<BufferWriter<Double>> seatLampChargesBufferWriters;
-    private final List<BufferWriter<Double>> seatPowerOutletChargesBufferWriters;
-    private final BufferWriter<Double> airVentilationChargeBufferWriter;
-    private final List<BufferWriter<Double>> trashBinsFillPercentageBufferWriters;
-    private final List<BufferWriter<Double>> trashBinsInternalTemperatureBufferWriters;
-    private final List<BufferWriter<Double>> trashBinsChargesBufferWriters;
-    private final List<BufferWriter<Double>> doorsChargeConsumptionBufferWriters;
-    private final List<BufferWriter<Double>> doorsLocksConsumptionBufferWriters;
-    private final List<BufferWriter<Double>> doorsPresenceMonitorsConsumptionBufferWriters;
-    private final List<BufferWriter<Double>> seatPowerOutletConsumptionBufferWriters;
-    private final List<BufferWriter<Double>> trashBinsConsumptionBufferWriters;
-    private final List<BufferWriter<Double>> carriageLightsConsumptionBufferWriters;
-    private final List<BufferWriter<Double>> seatLampConsumptionBufferWriters;
-    private final BufferWriter<Double> airVentilationConsumptionBufferWriter;
+    private final List<SingleItemReadWriteBuffer<Pair<Integer, Integer>>> doorsInOutBuffers;
+    private final List<SingleItemReadWriteBuffer<Boolean>> doorsOpenCloseBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> doorsChargesBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> doorsLocksChargesBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> doorsPresenceMonitorsChargesBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> carriageLightsChargesBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> seatLampChargesBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> seatPowerOutletChargesBuffers;
+    private final SingleItemReadWriteBuffer<Double> airVentilationChargeBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> trashBinsFillPercentageBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> trashBinsInternalTemperatureBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> trashBinsChargesBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> doorsChargeConsumptionBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> doorsLocksConsumptionBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> doorsPresenceMonitorsConsumptionBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> seatPowerOutletConsumptionBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> trashBinsConsumptionBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> carriageLightsConsumptionBuffers;
+    private final List<SingleItemReadWriteBuffer<Double>> seatLampConsumptionBuffers;
+    private final SingleItemReadWriteBuffer<Double> airVentilationConsumptionBuffers;
 
 
-    private final List<BufferReader<Boolean>> doorsLocksBufferReaders;
-    private final List<BufferReader<Boolean>> carriageLightsOnOffBufferReaders;
-    private final List<BufferReader<Boolean>> seatLampOnOffBufferReaders;
-    private final List<BufferReader<BrightnessLevelsEnum>> seatLampBrightnessBufferReaders;
-    private final List<BufferReader<Boolean>> seatPowerOutletOnOffBufferReaders;
-    private final BufferReader<Boolean> airVentilationOnOffBufferReader;
-    private final List<BufferReader<Boolean>> trashBinsOnOffBufferReaders;
+    private final List<SingleItemReadWriteBuffer<Boolean>> doorsLocksBuffers;
+    private final List<SingleItemReadWriteBuffer<Boolean>> carriageLightsOnOffBuffers;
+    private final List<SingleItemReadWriteBuffer<Boolean>> seatLampOnOffBuffers;
+    private final List<SingleItemReadWriteBuffer<BrightnessLevelsEnum>> seatLampBrightnessBuffers;
+    private final List<SingleItemReadWriteBuffer<Boolean>> seatPowerOutletOnOffBuffers;
+    private final SingleItemReadWriteBuffer<Boolean> airVentsOnOffBuffer;
+    private final SingleItemReadWriteBuffer<Boolean> airVentilationOnOffBuffer;
+    private final SingleItemReadWriteBuffer<Boolean> dehumidifierOnOffBuffer;
+    private final List<SingleItemReadWriteBuffer<Boolean>> trashBinsOnOffBuffers;
 
     public CarriageBuffersCollector(Carriage carriage) {
         int numDoors = carriage.getExternalDoors().size() + carriage.getInternalDoors().size();
@@ -51,178 +51,188 @@ public class CarriageBuffersCollector {
         int numSeats = carriage.getSeats().size();
         int numTrashBins = carriage.getTrashBins().size();
 
-        this.doorsInOutBufferWriters = new ArrayList<>(numDoors);
-        this.doorsOpenCloseBufferWriters = new ArrayList<>(numDoors);
+        this.doorsInOutBuffers = new ArrayList<>(numDoors);
+        this.doorsOpenCloseBuffers = new ArrayList<>(numDoors);
 
-        this.doorsChargesBufferWriters = new ArrayList<>(numDoors);
-        this.doorsLocksChargesBufferWriters = new ArrayList<>(numDoors);
-        this.doorsPresenceMonitorsChargesBufferWriters = new ArrayList<>(numDoors);
-        this.carriageLightsChargesBufferWriters = new ArrayList<>(numLights);
-        this.seatLampChargesBufferWriters = new ArrayList<>(numSeats);
-        this.seatPowerOutletChargesBufferWriters = new ArrayList<>(numSeats);
-        this.doorsLocksBufferReaders = new ArrayList<>(numDoors);
-        this.carriageLightsOnOffBufferReaders = new ArrayList<>(numLights);
-        this.seatLampOnOffBufferReaders = new ArrayList<>(numSeats);
-        this.seatLampBrightnessBufferReaders = new ArrayList<>(numSeats);
-        this.seatPowerOutletOnOffBufferReaders = new ArrayList<>(numSeats);
-        this.trashBinsFillPercentageBufferWriters = new ArrayList<>(numTrashBins);
-        this.trashBinsInternalTemperatureBufferWriters = new ArrayList<>(numTrashBins);
-        this.trashBinsChargesBufferWriters = new ArrayList<>(numTrashBins);
-        this.trashBinsOnOffBufferReaders = new ArrayList<>(numTrashBins);
-        this.doorsChargeConsumptionBufferWriters = new ArrayList<>(numDoors);
-        this.doorsLocksConsumptionBufferWriters = new ArrayList<>(numDoors);
-        this.doorsPresenceMonitorsConsumptionBufferWriters = new ArrayList<>(numDoors);
-        this.seatPowerOutletConsumptionBufferWriters = new ArrayList<>(numSeats);
-        this.seatLampConsumptionBufferWriters = new ArrayList<>(numSeats);
-        this.trashBinsConsumptionBufferWriters = new ArrayList<>(numTrashBins);
-        this.carriageLightsConsumptionBufferWriters = new ArrayList<>(numDoors);
+        this.doorsChargesBuffers = new ArrayList<>(numDoors);
+        this.doorsLocksChargesBuffers = new ArrayList<>(numDoors);
+        this.doorsPresenceMonitorsChargesBuffers = new ArrayList<>(numDoors);
+        this.carriageLightsChargesBuffers = new ArrayList<>(numLights);
+        this.seatLampChargesBuffers = new ArrayList<>(numSeats);
+        this.seatPowerOutletChargesBuffers = new ArrayList<>(numSeats);
+        this.doorsLocksBuffers = new ArrayList<>(numDoors);
+        this.carriageLightsOnOffBuffers = new ArrayList<>(numLights);
+        this.seatLampOnOffBuffers = new ArrayList<>(numSeats);
+        this.seatLampBrightnessBuffers = new ArrayList<>(numSeats);
+        this.seatPowerOutletOnOffBuffers = new ArrayList<>(numSeats);
+        this.trashBinsFillPercentageBuffers = new ArrayList<>(numTrashBins);
+        this.trashBinsInternalTemperatureBuffers = new ArrayList<>(numTrashBins);
+        this.trashBinsChargesBuffers = new ArrayList<>(numTrashBins);
+        this.trashBinsOnOffBuffers = new ArrayList<>(numTrashBins);
+        this.doorsChargeConsumptionBuffers = new ArrayList<>(numDoors);
+        this.doorsLocksConsumptionBuffers = new ArrayList<>(numDoors);
+        this.doorsPresenceMonitorsConsumptionBuffers = new ArrayList<>(numDoors);
+        this.seatPowerOutletConsumptionBuffers = new ArrayList<>(numSeats);
+        this.seatLampConsumptionBuffers = new ArrayList<>(numSeats);
+        this.trashBinsConsumptionBuffers = new ArrayList<>(numTrashBins);
+        this.carriageLightsConsumptionBuffers = new ArrayList<>(numDoors);
 
         for (int i = 0; i < numDoors; i++) {
-            this.doorsInOutBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsOpenCloseBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsLocksBufferReaders.add(new BufferReader<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsChargesBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsLocksChargesBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsPresenceMonitorsChargesBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsChargeConsumptionBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsLocksConsumptionBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.doorsPresenceMonitorsConsumptionBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
+            this.doorsInOutBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsOpenCloseBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsLocksBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsChargesBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsLocksChargesBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsPresenceMonitorsChargesBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsChargeConsumptionBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsLocksConsumptionBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.doorsPresenceMonitorsConsumptionBuffers.add(new SingleItemReadWriteBuffer<>());
         }
 
         for (int i = 0; i < numLights; i++) {
-            this.carriageLightsChargesBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.carriageLightsOnOffBufferReaders.add(new BufferReader<>(new SingleItemReadWriteBuffer<>()));
-            this.carriageLightsConsumptionBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
+            this.carriageLightsChargesBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.carriageLightsOnOffBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.carriageLightsConsumptionBuffers.add(new SingleItemReadWriteBuffer<>());
         }
 
         for (int i = 0; i < numSeats; i++) {
-            this.seatLampChargesBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.seatLampOnOffBufferReaders.add(new BufferReader<>(new SingleItemReadWriteBuffer<>()));
-            this.seatLampBrightnessBufferReaders.add(new BufferReader<>(new SingleItemReadWriteBuffer<>()));
-            this.seatPowerOutletChargesBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.seatPowerOutletOnOffBufferReaders.add(new BufferReader<>(new SingleItemReadWriteBuffer<>()));
-            this.seatLampConsumptionBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.seatPowerOutletConsumptionBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
+            this.seatLampChargesBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.seatLampOnOffBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.seatLampBrightnessBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.seatPowerOutletChargesBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.seatPowerOutletOnOffBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.seatLampConsumptionBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.seatPowerOutletConsumptionBuffers.add(new SingleItemReadWriteBuffer<>());
         }
 
         for (int i = 0; i < numTrashBins; i++) {
-            this.trashBinsFillPercentageBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.trashBinsInternalTemperatureBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.trashBinsChargesBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
-            this.trashBinsOnOffBufferReaders.add(new BufferReader<>(new SingleItemReadWriteBuffer<>()));
-            this.trashBinsConsumptionBufferWriters.add(new BufferWriter<>(new SingleItemReadWriteBuffer<>()));
+            this.trashBinsFillPercentageBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.trashBinsInternalTemperatureBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.trashBinsChargesBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.trashBinsOnOffBuffers.add(new SingleItemReadWriteBuffer<>());
+            this.trashBinsConsumptionBuffers.add(new SingleItemReadWriteBuffer<>());
         }
 
-        this.airVentilationChargeBufferWriter = new BufferWriter<>(new SingleItemReadWriteBuffer<>());
-        this.airVentilationOnOffBufferReader = new BufferReader<>(new SingleItemReadWriteBuffer<>());
-        this.airVentilationConsumptionBufferWriter = new BufferWriter<>(new SingleItemReadWriteBuffer<>());
+        this.airVentilationChargeBuffers = new SingleItemReadWriteBuffer<>();
+        this.airVentsOnOffBuffer = new SingleItemReadWriteBuffer<>();
+        this.airVentilationOnOffBuffer = new SingleItemReadWriteBuffer<>();
+        this.dehumidifierOnOffBuffer = new SingleItemReadWriteBuffer<>();
+        this.airVentilationConsumptionBuffers = new SingleItemReadWriteBuffer<>();
     }
 
-    public List<BufferWriter<Pair<Integer, Integer>>> getDoorsInOutBufferWriters() {
-        return doorsInOutBufferWriters;
+    public List<SingleItemReadWriteBuffer<Pair<Integer, Integer>>> getDoorsInOutBuffers() {
+        return doorsInOutBuffers;
     }
 
-    public List<BufferWriter<Boolean>> getDoorsOpenCloseBufferWriters() {
-        return doorsOpenCloseBufferWriters;
+    public List<SingleItemReadWriteBuffer<Boolean>> getDoorsOpenCloseBuffers() {
+        return doorsOpenCloseBuffers;
     }
 
-    public List<BufferWriter<Double>> getDoorsChargesBufferWriters() {
-        return doorsChargesBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getDoorsChargesBuffers() {
+        return doorsChargesBuffers;
     }
 
-    public List<BufferWriter<Double>> getDoorsLocksChargesBufferWriters() {
-        return doorsLocksChargesBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getDoorsLocksChargesBuffers() {
+        return doorsLocksChargesBuffers;
     }
 
-    public List<BufferWriter<Double>> getDoorsPresenceMonitorsChargesBufferWriters() {
-        return doorsPresenceMonitorsChargesBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getDoorsPresenceMonitorsChargesBuffers() {
+        return doorsPresenceMonitorsChargesBuffers;
     }
 
-    public List<BufferWriter<Double>> getCarriageLightsChargesBufferWriters() {
-        return carriageLightsChargesBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getCarriageLightsChargesBuffers() {
+        return carriageLightsChargesBuffers;
     }
 
-    public List<BufferWriter<Double>> getSeatLampChargesBufferWriters() {
-        return seatLampChargesBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getSeatLampChargesBuffers() {
+        return seatLampChargesBuffers;
     }
 
-    public List<BufferWriter<Double>> getSeatPowerOutletChargesBufferWriters() {
-        return seatPowerOutletChargesBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getSeatPowerOutletChargesBuffers() {
+        return seatPowerOutletChargesBuffers;
     }
 
-    public BufferWriter<Double> getAirVentilationChargeBufferWriter() {
-        return airVentilationChargeBufferWriter;
+    public SingleItemReadWriteBuffer<Double> getAirVentilationChargeBuffers() {
+        return airVentilationChargeBuffers;
     }
 
-    public List<BufferWriter<Double>> getTrashBinsFillPercentageBufferWriters() {
-        return trashBinsFillPercentageBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getTrashBinsFillPercentageBuffers() {
+        return trashBinsFillPercentageBuffers;
     }
 
-    public List<BufferWriter<Double>> getTrashBinsInternalTemperatureBufferWriters() {
-        return trashBinsInternalTemperatureBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getTrashBinsInternalTemperatureBuffers() {
+        return trashBinsInternalTemperatureBuffers;
     }
 
-    public List<BufferWriter<Double>> getTrashBinsChargesBufferWriters() {
-        return trashBinsChargesBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getTrashBinsChargesBuffers() {
+        return trashBinsChargesBuffers;
     }
 
-    public List<BufferWriter<Double>> getDoorsChargeConsumptionBufferWriters() {
-        return doorsChargeConsumptionBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getDoorsChargeConsumptionBuffers() {
+        return doorsChargeConsumptionBuffers;
     }
 
-    public List<BufferWriter<Double>> getDoorsLocksConsumptionBufferWriters() {
-        return doorsLocksConsumptionBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getDoorsLocksConsumptionBuffers() {
+        return doorsLocksConsumptionBuffers;
     }
 
-    public List<BufferWriter<Double>> getDoorsPresenceMonitorsConsumptionBufferWriters() {
-        return doorsPresenceMonitorsConsumptionBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getDoorsPresenceMonitorsConsumptionBuffers() {
+        return doorsPresenceMonitorsConsumptionBuffers;
     }
 
-    public List<BufferWriter<Double>> getSeatPowerOutletConsumptionBufferWriters() {
-        return seatPowerOutletConsumptionBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getSeatPowerOutletConsumptionBuffers() {
+        return seatPowerOutletConsumptionBuffers;
     }
 
-    public List<BufferWriter<Double>> getTrashBinsConsumptionBufferWriters() {
-        return trashBinsConsumptionBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getTrashBinsConsumptionBuffers() {
+        return trashBinsConsumptionBuffers;
     }
 
-    public List<BufferWriter<Double>> getCarriageLightsConsumptionBufferWriters() {
-        return carriageLightsConsumptionBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getCarriageLightsConsumptionBuffers() {
+        return carriageLightsConsumptionBuffers;
     }
 
-    public List<BufferWriter<Double>> getSeatLampConsumptionBufferWriters() {
-        return seatLampConsumptionBufferWriters;
+    public List<SingleItemReadWriteBuffer<Double>> getSeatLampConsumptionBuffers() {
+        return seatLampConsumptionBuffers;
     }
 
-    public BufferWriter<Double> getAirVentilationConsumptionBufferWriter() {
-        return airVentilationConsumptionBufferWriter;
+    public SingleItemReadWriteBuffer<Double> getAirVentilationConsumptionBuffers() {
+        return airVentilationConsumptionBuffers;
     }
 
-    public List<BufferReader<Boolean>> getDoorsLocksBufferReaders() {
-        return doorsLocksBufferReaders;
+    public List<SingleItemReadWriteBuffer<Boolean>> getDoorsLocksBuffers() {
+        return doorsLocksBuffers;
     }
 
-    public List<BufferReader<Boolean>> getCarriageLightsOnOffBufferReaders() {
-        return carriageLightsOnOffBufferReaders;
+    public List<SingleItemReadWriteBuffer<Boolean>> getCarriageLightsOnOffBuffers() {
+        return carriageLightsOnOffBuffers;
     }
 
-    public List<BufferReader<Boolean>> getSeatLampOnOffBufferReaders() {
-        return seatLampOnOffBufferReaders;
+    public List<SingleItemReadWriteBuffer<Boolean>> getSeatLampOnOffBuffers() {
+        return seatLampOnOffBuffers;
     }
 
-    public List<BufferReader<BrightnessLevelsEnum>> getSeatLampBrightnessBufferReaders() {
-        return seatLampBrightnessBufferReaders;
+    public List<SingleItemReadWriteBuffer<BrightnessLevelsEnum>> getSeatLampBrightnessBuffers() {
+        return seatLampBrightnessBuffers;
     }
 
-    public List<BufferReader<Boolean>> getSeatPowerOutletOnOffBufferReaders() {
-        return seatPowerOutletOnOffBufferReaders;
+    public List<SingleItemReadWriteBuffer<Boolean>> getSeatPowerOutletOnOffBuffers() {
+        return seatPowerOutletOnOffBuffers;
     }
 
-    public BufferReader<Boolean> getAirVentilationOnOffBufferReader() {
-        return airVentilationOnOffBufferReader;
+    public SingleItemReadWriteBuffer<Boolean> getAirVentsOnOffBuffer() {
+        return airVentsOnOffBuffer;
     }
 
-    public List<BufferReader<Boolean>> getTrashBinsOnOffBufferReaders() {
-        return trashBinsOnOffBufferReaders;
+    public SingleItemReadWriteBuffer<Boolean> getAirVentilationOnOffBuffer() {
+        return airVentilationOnOffBuffer;
+    }
+
+    public SingleItemReadWriteBuffer<Boolean> getDehumidifierOnOffBuffer() {
+        return dehumidifierOnOffBuffer;
+    }
+
+    public List<SingleItemReadWriteBuffer<Boolean>> getTrashBinsOnOffBuffers() {
+        return trashBinsOnOffBuffers;
     }
 }

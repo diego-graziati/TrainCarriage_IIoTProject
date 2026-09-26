@@ -50,8 +50,8 @@ public class AirTemperatureActuatorResource extends CoapResource {
             senMLRecord.setBver(ACTUATOR_VERSION);
             senMLRecord.setN(this.getName());
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setU(this.model.getTemperatureUnit());
-            senMLRecord.setV(this.model.getTemperature());
+            senMLRecord.setU(this.model.getTargetTemperatureUnit());
+            senMLRecord.setV(this.model.getTargetTemperature());
 
             senMLPack.add(senMLRecord);
 
