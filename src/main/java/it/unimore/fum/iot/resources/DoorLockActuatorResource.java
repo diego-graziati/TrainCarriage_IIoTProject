@@ -5,6 +5,7 @@ import it.unimore.fum.iot.models.DoorLockActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
@@ -21,18 +22,13 @@ public class DoorLockActuatorResource extends CoapResource {
     private String devideId = null;
     private Gson gson = null;
 
-    public DoorLockActuatorResource(String name, String deviceId) {
+    public DoorLockActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> doorLockActuator) {
         super(name);
         this.devideId = deviceId;
-        this.init();
-    }
 
-    private void init() {
+        // INIT
         this.gson = new Gson();
-        this.model = new DoorLockActuatorModel();
-
-        this.setObservable(true);
-        this.setObserveType(CoAP.Type.CON);
+        this.model = new DoorLockActuatorModel(doorLockActuator);
 
         getAttributes().setTitle(OBJECT_TITLE);
         getAttributes().addAttribute("rt", "it.unimore.device.actuator.door-lock");
@@ -60,15 +56,51 @@ public class DoorLockActuatorResource extends CoapResource {
         }
     }
 
-    //TODO: IMPLEMENT!
     @Override
     public void handleGET(CoapExchange exchange) {
-        super.handleGET(exchange);
+
+        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+            Optional<String> senMlPayload = getJsonSenmlResponse();
+
+            if (senMlPayload.isPresent()) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, senMlPayload.get(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+            }
+
+        } else if( exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+            exchange.respond(CoAP.ResponseCode.CONTENT, String.valueOf(this.model.isLocked()), MediaTypeRegistry.TEXT_PLAIN);
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
     }
 
-    //TODO: IMPLEMENT!
     @Override
     public void handlePUT(CoapExchange exchange) {
-        super.handlePUT(exchange);
+
+        if (exchange.getRequestPayload() != null) {
+            boolean doorLockStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+
+            this.model.setLocked(doorLockStatus);
+
+            if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                    exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+                Optional<String> senMlPayload = getJsonSenmlResponse();
+
+                if (senMlPayload.isPresent()) {
+                    exchange.respond(CoAP.ResponseCode.CHANGED, senMlPayload.get(), exchange.getRequestOptions().getAccept());
+                } else {
+                    exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+                }
+            } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+                exchange.respond(CoAP.ResponseCode.CHANGED, String.valueOf(this.model.isLocked()), MediaTypeRegistry.TEXT_PLAIN);
+            } else {
+                exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+            }
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
     }
 }

@@ -1,14 +1,32 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.tools.ModelStateChangeNotifier;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+import org.javatuples.Pair;
+
 public class PresenceMonitoringSensorModel {
     private long timestamp;
     private int in;
     private int out;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public PresenceMonitoringSensorModel() {
+    private ModelStateChangeNotifier listener;
+
+    public PresenceMonitoringSensorModel(SensorDriver<Pair<Integer, Integer>> presenceMonitoringSensor) {
         this.in = 1;
         this.out = 1;
+
+        presenceMonitoringSensor.registerListeners(val -> {
+            this.in = val.getValue0();
+            this.out = val.getValue1();
+
+            if (this.listener != null) {
+                this.listener.onStateChange();
+            }
+        });
+    }
+
+    public void setOnStateChange(ModelStateChangeNotifier listener) {
+        this.listener = listener;
     }
 
     public int getIn() {

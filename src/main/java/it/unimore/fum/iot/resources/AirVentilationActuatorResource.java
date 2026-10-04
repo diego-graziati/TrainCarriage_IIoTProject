@@ -5,6 +5,7 @@ import it.unimore.fum.iot.models.AirVentilationActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
@@ -21,18 +22,13 @@ public class AirVentilationActuatorResource extends CoapResource {
     private String devideId = null;
     private Gson gson = null;
 
-    public AirVentilationActuatorResource(String name, String deviceId) {
+    public AirVentilationActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> onOffAirVentilationActuator) {
         super(name);
         this.devideId = deviceId;
-        this.init();
-    }
 
-    private void init() {
+        // INIT!
         this.gson = new Gson();
-        this.model = new AirVentilationActuatorModel();
-
-        setObservable(true);
-        setObserveType(CoAP.Type.CON);
+        this.model = new AirVentilationActuatorModel(onOffAirVentilationActuator);
 
         getAttributes().addAttribute(OBJECT_TITLE);
         getAttributes().addAttribute("rt", "it.unimore.device.actuator.air_ventilation");
@@ -60,15 +56,54 @@ public class AirVentilationActuatorResource extends CoapResource {
         }
     }
 
-    //TODO: IMPLEMENT!!
     @Override
     public void handleGET(CoapExchange exchange) {
-        super.handleGET(exchange);
+
+        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+            Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+
+            if (jsonSenmlResponse.isPresent()) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+            }
+        } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+                    + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
     }
 
-    //TODO: IMPLEMENT!!
     @Override
     public void handlePUT(CoapExchange exchange) {
-        super.handlePUT(exchange);
+
+        if (exchange.getRequestPayload() != null) {
+
+            boolean airVentilationStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+
+            this.model.setOn(airVentilationStatus);
+
+            if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                    exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+                Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+
+                if (jsonSenmlResponse.isPresent()) {
+                    exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+                } else {
+                    exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+                }
+            } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+                        + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+            }
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
     }
 }

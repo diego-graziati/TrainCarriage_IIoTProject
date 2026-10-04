@@ -1,5 +1,7 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
+import it.unimore.fum.iot.utils.types.drivers.SimulationActuatorDriver;
+import it.unimore.fum.iot.utils.types.drivers.SimulationSensorDriver;
 import it.unimore.fum.iot.utils.types.simulation.IBatteryCharged;
 import it.unimore.fum.iot.utils.types.simulation.defaults.AirVentilationDefaults;
 
@@ -15,7 +17,17 @@ public class AirVentilation implements IAirVentilation, IBatteryCharged {
     private double batteryCharge;
     private boolean isBatteryCutoff;
 
-    private AirVentilationDefaults defaults;
+    private final AirVentilationDefaults defaults;
+
+    private SimulationSensorDriver<Double> airTemperatureSensor;
+    private SimulationSensorDriver<Double> humiditySensor;
+    private SimulationSensorDriver<Double> batteryChargerSensor;
+    private SimulationSensorDriver<Double> energyConsumptionSensor;
+    private SimulationActuatorDriver<Boolean> airVentilationActuator;
+    private SimulationActuatorDriver<Boolean> dehumidifierActuator;
+    private SimulationActuatorDriver<Boolean> airVentsActuator;
+    private SimulationActuatorDriver<Double> targetAirTemperatureActuator;
+    private SimulationActuatorDriver<Double> targetHumidityActuator;
 
     public AirVentilation(String configPath) {
         this.defaults = new AirVentilationDefaults(configPath);
@@ -28,6 +40,78 @@ public class AirVentilation implements IAirVentilation, IBatteryCharged {
         this.targetAirTemperature = this.defaults.INITIAL_TARGET_AIR_TEMPERATURE;
         this.targetAirHumidity = this.defaults.INITIAL_TARGET_AIR_HUMIDITY;
         this.batteryCharge = this.defaults.INITIAL_BATTERY_CHARGE;
+    }
+
+    public SimulationSensorDriver<Double> getAirTemperatureSensor() {
+        return airTemperatureSensor;
+    }
+
+    public void connectAirTemperatureSensor(SimulationSensorDriver<Double> airTemperatureSensor) {
+        this.airTemperatureSensor = airTemperatureSensor;
+    }
+
+    public SimulationSensorDriver<Double> getHumiditySensor() {
+        return humiditySensor;
+    }
+
+    public void connectHumiditySensor(SimulationSensorDriver<Double> humiditySensor) {
+        this.humiditySensor = humiditySensor;
+    }
+
+    public SimulationSensorDriver<Double> getBatteryChargerSensor() {
+        return batteryChargerSensor;
+    }
+
+    public void connectBatteryChargeSensor(SimulationSensorDriver<Double> batteryChargerSensor) {
+        this.batteryChargerSensor = batteryChargerSensor;
+    }
+
+    public SimulationSensorDriver<Double> getEnergyConsumptionSensor() {
+        return energyConsumptionSensor;
+    }
+
+    public void connectEnergyConsumptionSensor(SimulationSensorDriver<Double> energyConsumptionSensor) {
+        this.energyConsumptionSensor = energyConsumptionSensor;
+    }
+
+    public SimulationActuatorDriver<Boolean> getAirVentilationActuator() {
+        return airVentilationActuator;
+    }
+
+    public void connectAirVentilationActuator(SimulationActuatorDriver<Boolean> airVentilationActuator) {
+        this.airVentilationActuator = airVentilationActuator;
+    }
+
+    public SimulationActuatorDriver<Boolean> getDehumidifierActuator() {
+        return dehumidifierActuator;
+    }
+
+    public void connectDehumidifierActuator(SimulationActuatorDriver<Boolean> dehumidifierActuator) {
+        this.dehumidifierActuator = dehumidifierActuator;
+    }
+
+    public SimulationActuatorDriver<Boolean> getAirVentsActuator() {
+        return airVentsActuator;
+    }
+
+    public void connectAirVentsActuator(SimulationActuatorDriver<Boolean> airVentsActuator) {
+        this.airVentsActuator = airVentsActuator;
+    }
+
+    public SimulationActuatorDriver<Double> getTargetAirTemperatureActuator() {
+        return targetAirTemperatureActuator;
+    }
+
+    public void connectTargetAirTemperatureActuator(SimulationActuatorDriver<Double> targetAirTemperatureActuator) {
+        this.targetAirTemperatureActuator = targetAirTemperatureActuator;
+    }
+
+    public SimulationActuatorDriver<Double> getTargetHumidityActuator() {
+        return targetHumidityActuator;
+    }
+
+    public void connectTargetHumidityActuator(SimulationActuatorDriver<Double> targetHumidityActuator) {
+        this.targetHumidityActuator = targetHumidityActuator;
     }
 
     @Override
@@ -66,7 +150,7 @@ public class AirVentilation implements IAirVentilation, IBatteryCharged {
     }
 
     @Override
-    public void reconnect() {
+    public void repair() {
         this.isBatteryCutoff = false;
     }
 

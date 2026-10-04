@@ -1,13 +1,29 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.tools.ModelStateChangeNotifier;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+
 public class DoorSensorModel {
     private long timestamp;
     private boolean isOpen;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public DoorSensorModel() {
+    private ModelStateChangeNotifier listener;
+
+    public DoorSensorModel(SensorDriver<Boolean> isDoorOpenSensor) {
         this.timestamp = System.currentTimeMillis();
         this.isOpen = false;
+
+        isDoorOpenSensor.registerListeners(val -> {
+            this.isOpen = val;
+
+            if (this.listener != null) {
+                this.listener.onStateChange();
+            }
+        });
+    }
+
+    public void setOnStateChange(ModelStateChangeNotifier listener) {
+        this.listener = listener;
     }
 
     public long getTimestamp() {

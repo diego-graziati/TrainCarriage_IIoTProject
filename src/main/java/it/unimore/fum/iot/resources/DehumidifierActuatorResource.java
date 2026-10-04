@@ -6,9 +6,11 @@ import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
@@ -21,21 +23,12 @@ public class DehumidifierActuatorResource extends CoapResource {
     private String devideId = null;
     private Gson gson = null;
 
-    private final SingleItemReadWriteBuffer<Boolean> onOffDehumidifier;
-
-    public DehumidifierActuatorResource(String name, String deviceId, SingleItemReadWriteBuffer<Boolean> onOffDehumidifier) {
+    public DehumidifierActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> onOffDehumidifier) {
         super(name);
         this.devideId = deviceId;
-        this.onOffDehumidifier = onOffDehumidifier;
-        this.init();
-    }
 
-    private void init() {
         this.gson = new Gson();
-        this.model = new DehumidifierActuatorModel(this.onOffDehumidifier);
-
-        setObservable(true);
-        setObserveType(CoAP.Type.CON);
+        this.model = new DehumidifierActuatorModel(onOffDehumidifier);
 
         getAttributes().addAttribute(OBJECT_TITLE);
         getAttributes().addAttribute("rt", "it.unimore.device.actuator.dehumidifier");
@@ -53,13 +46,63 @@ public class DehumidifierActuatorResource extends CoapResource {
             senMLRecord.setN(this.getName());
             senMLRecord.setBver(ACTUATOR_VERSION);
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setV(this.model.getTargetHumidity());
+            senMLRecord.setVb(this.model.isOn());
 
             senMLPack.add(senMLRecord);
 
             return Optional.of(this.gson.toJson(senMLPack));
         }catch(Exception e){
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public void handleGET(CoapExchange exchange) {
+
+        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+            Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+            if (jsonSenmlResponse.isPresent()) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+            }
+        } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+                    + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
+    }
+
+    @Override
+    public void handlePUT(CoapExchange exchange) {
+
+        if (exchange.getRequestPayload() != null) {
+
+            boolean dehumidifierStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+
+            this.model.setOn(dehumidifierStatus);
+
+            if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                    exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+                Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+
+                if (jsonSenmlResponse.isPresent()) {
+                    exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+                } else {
+                    exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+                }
+            } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+                        + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+            }
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
         }
     }
 }

@@ -5,6 +5,7 @@ import it.unimore.fum.iot.models.DoorSensorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
@@ -21,15 +22,13 @@ public class DoorSensorResource extends CoapResource {
     private String devideId = null;
     private Gson gson = null;
 
-    public DoorSensorResource(String name, String devideId) {
+    public DoorSensorResource(String name, String devideId, SensorDriver<Boolean> isDoorOpenSensor) {
         super(name);
         this.devideId = devideId;
-        this.init();
-    }
 
-    private void init() {
+        // INIT!
         this.gson = new Gson();
-        this.model = new DoorSensorModel();
+        this.model = new DoorSensorModel(isDoorOpenSensor);
 
         setObservable(true);
         setObserveType(CoAP.Type.CON);
@@ -39,6 +38,8 @@ public class DoorSensorResource extends CoapResource {
         getAttributes().addAttribute("if", CoreInterfaces.CORE_S.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
+
+        this.model.setOnStateChange(this::changed);
     }
 
     private Optional<String> getJsonSenmlResponse() {

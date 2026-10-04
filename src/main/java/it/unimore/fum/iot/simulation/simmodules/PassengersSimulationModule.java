@@ -21,7 +21,7 @@ public class PassengersSimulationModule extends BaseSimulationModule {
 
     private final List<Passenger> onboardPassengers;
 
-    private Random random;
+    private final Random random;
 
     public PassengersSimulationModule(Carriage carriage, int updateFrequency) {
         super(new PassengersSimulationDefaults(Paths.Config.Simulation.PASSENGERS), updateFrequency);
