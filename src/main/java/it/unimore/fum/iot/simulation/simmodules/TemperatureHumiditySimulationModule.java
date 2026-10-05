@@ -1,9 +1,6 @@
 package it.unimore.fum.iot.simulation.simmodules;
 
 import it.unimore.fum.iot.Main;
-import it.unimore.fum.iot.utils.tools.buffers.BufferReader;
-import it.unimore.fum.iot.utils.tools.buffers.BufferWriter;
-import it.unimore.fum.iot.utils.types.collectors.TemperatureHumidityBuffersCollector;
 import it.unimore.fum.iot.utils.types.simulation.Paths;
 import it.unimore.fum.iot.utils.types.simulation.carriage.Carriage;
 import it.unimore.fum.iot.utils.types.simulation.defaults.TemperatureSimulationDefaults;
@@ -21,14 +18,7 @@ public class TemperatureHumiditySimulationModule extends BaseSimulationModule {
     private final TemperatureSimulationDefaults defaults;
     private final Carriage carriage;
 
-    private final BufferWriter<Double> temperatureBufferWriter;
-    private final BufferWriter<Double> humidityBufferWriter;
-    private final BufferReader<Double> targetTemperatureBufferWriter;
-    private final BufferReader<Double> targetHumidityBufferWriter;
-
-    private final TemperatureHumidityBuffersCollector buffers;
-
-    public TemperatureHumiditySimulationModule(Carriage carriage, TemperatureHumidityBuffersCollector buffers, int updateFrequency) {
+    public TemperatureHumiditySimulationModule(Carriage carriage, int updateFrequency) {
         super(new TemperatureSimulationDefaults(Paths.Config.Simulation.TEMPERATURE), updateFrequency);
 
         this.defaults = new TemperatureSimulationDefaults(Paths.Config.Simulation.TEMPERATURE);
@@ -36,12 +26,6 @@ public class TemperatureHumiditySimulationModule extends BaseSimulationModule {
         this.humidity = defaults.INITIAL_HUMIDITY;
         this.scheduler = Executors.newScheduledThreadPool(1);
         this.carriage = carriage;
-        this.buffers = buffers;
-
-        this.temperatureBufferWriter = new BufferWriter<>(buffers.getTemperatureBuffer());
-        this.humidityBufferWriter = new BufferWriter<>(buffers.getHumidityBuffer());
-        this.targetTemperatureBufferWriter = new BufferReader<>(buffers.getTargetTemperature());
-        this.targetHumidityBufferWriter = new BufferReader<>(buffers.getTargetHumidity());
     }
 
     @Override
@@ -64,10 +48,10 @@ public class TemperatureHumiditySimulationModule extends BaseSimulationModule {
                 doorsOpenHumidityModifier = numDoorsOpen.get() * this.defaults.DOOR_OPEN_HUMIDITY_MODIFIER * (-1);
             }
 
-            if (this.carriage.getAirVentilation().getBatteryCharge() > 0.0) {
+            /*if (this.carriage.getAirVentilation().getBatteryCharge() > 0.0) {
                 this.carriage.getAirVentilation().setTargetAirTemperature(this.targetTemperatureBufferWriter.read());
                 this.carriage.getAirVentilation().setTargetHumidity(this.targetHumidityBufferWriter.read());
-            }
+            }*/
 
             double airVentilationTemperatureModifier = 0.0;
             double airVentilationHumidityModifier = 0.0;
@@ -124,8 +108,13 @@ public class TemperatureHumiditySimulationModule extends BaseSimulationModule {
                     "\nNew humidity: " + this.humidity);
 
             if(this.carriage.getAirVentilation().getBatteryCharge() > 0.0) {
-                this.temperatureBufferWriter.write(this.temperature);
-                this.humidityBufferWriter.write(this.humidity);
+                if (this.carriage.getAirVentilation().getAirTemperatureSensor() != null) {
+                    this.carriage.getAirVentilation().getAirTemperatureSensor().update(this.temperature);
+                }
+
+                if (this.carriage.getAirVentilation().getHumiditySensor() != null) {
+                    this.carriage.getAirVentilation().getHumiditySensor().update(this.humidity);
+                }
             }
         }, 0, 60/super.updateFrequency, TimeUnit.SECONDS);
     }

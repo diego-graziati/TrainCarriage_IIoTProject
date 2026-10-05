@@ -1,15 +1,19 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
+
 public class AirTemperatureActuatorModel {
     private long timestamp;
     private double targetTemperature;
     private String targetTemperatureUnit;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public AirTemperatureActuatorModel() {
+    private final ActuatorDriver<Double> setTargetTemperatureActuator;
+
+    public AirTemperatureActuatorModel(ActuatorDriver<Double> setTargetTemperatureActuator) {
         this.timestamp = System.currentTimeMillis();
         this.targetTemperature = 30.0;
         this.targetTemperatureUnit = "Cel";
+        this.setTargetTemperatureActuator = setTargetTemperatureActuator;
     }
 
     public long getTimestamp() {
@@ -26,6 +30,7 @@ public class AirTemperatureActuatorModel {
 
     public void setTargetTemperature(double targetTemperature) {
         this.targetTemperature = targetTemperature;
+        this.setTargetTemperatureActuator.execute(targetTemperature);
     }
 
     public String getTargetTemperatureUnit() {

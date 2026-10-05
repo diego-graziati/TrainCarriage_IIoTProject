@@ -1,16 +1,37 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.tools.ModelStateChangeNotifier;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+
 public class EnergyConsumptionSensorModel {
     private long timestamp;
-    private long energyConsumption;
+    private double energyConsumption;
 
     private String energyConsumptionUnit;
 
+    private ModelStateChangeNotifier listener;
+
     //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public EnergyConsumptionSensorModel() {
+    public EnergyConsumptionSensorModel(SensorDriver<Double> energyConsumptionSensor) {
         this.timestamp = System.currentTimeMillis();
         this.energyConsumption = 10;
         this.energyConsumptionUnit = "W";
+
+        energyConsumptionSensor.registerListeners(val -> {
+            if (val < 0) {
+                this.energyConsumption = 0;
+            } else {
+                this.energyConsumption = val;
+            }
+
+            if (this.listener != null) {
+                this.listener.onStateChange();
+            }
+        });
+    }
+
+    public void setOnStateChange(ModelStateChangeNotifier listener) {
+        this.listener = listener;
     }
 
     public long getTimestamp() {
@@ -21,7 +42,7 @@ public class EnergyConsumptionSensorModel {
         this.timestamp = timestamp;
     }
 
-    public long getEnergyConsumption() {
+    public double getEnergyConsumption() {
         return energyConsumption;
     }
 

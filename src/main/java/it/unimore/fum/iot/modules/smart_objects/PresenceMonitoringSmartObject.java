@@ -5,29 +5,26 @@ import it.unimore.fum.iot.resources.BatteryChargeSensorResource;
 import it.unimore.fum.iot.resources.EnergyConsumptionSensorResource;
 import it.unimore.fum.iot.resources.PresenceMonitoringSensorResource;
 import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
 import org.javatuples.Pair;
 
 public class PresenceMonitoringSmartObject extends SmartObjectModule {
-    public PresenceMonitoringSmartObject() {
-        this(null, null, null, "", 1);
-    }
 
-    public PresenceMonitoringSmartObject(SingleItemReadWriteBuffer<Pair<Integer, Integer>> inOut,
-                                         SingleItemReadWriteBuffer<Double> batteryCharge,
-                                         SingleItemReadWriteBuffer<Double> energyConsumption,
-                                         String subfix,
-                                         int deviceIndex) {
+    public PresenceMonitoringSmartObject(SensorDriver<Pair<Integer, Integer>> presenceMonitoringSensor,
+                                         SensorDriver<Double> batteryChargeSensor,
+                                         SensorDriver<Double> energyConsumptionSensor,
+                                         String deviceId) {
         super();
 
-        String deviceId = String.format("presence-monitor-%s-%04d", subfix, deviceIndex);
+        //String deviceId = String.format("presence-monitor-%s-%04d", subfix, deviceIndex);
 
-        this.add(new PresenceMonitoringSensorResource("presence-monitor", deviceId));
-        this.add(new BatteryChargeSensorResource("battery-charge", deviceId));
-        this.add(new EnergyConsumptionSensorResource("energy-consumption", deviceId));
+        this.add(new PresenceMonitoringSensorResource("presence-monitor", deviceId, presenceMonitoringSensor));
+        this.add(new BatteryChargeSensorResource("battery-charge", deviceId, batteryChargeSensor));
+        this.add(new EnergyConsumptionSensorResource("energy-consumption", deviceId, energyConsumptionSensor));
     }
 
     public static void main(String[] args) {
-        PresenceMonitoringSmartObject smartObject = new PresenceMonitoringSmartObject();
+        PresenceMonitoringSmartObject smartObject = new PresenceMonitoringSmartObject(null, null, null, null);
         smartObject.start();
 
         smartObject.getRoot().getChildren().forEach(resource -> {

@@ -5,28 +5,26 @@ import it.unimore.fum.iot.resources.BatteryChargeSensorResource;
 import it.unimore.fum.iot.resources.EnergyConsumptionSensorResource;
 import it.unimore.fum.iot.resources.SeatChargerActuatorResource;
 import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
 
 public class SeatChargingStationSmartObject extends SmartObjectModule {
-    public SeatChargingStationSmartObject() {
-        this(null, null, null, "", 1);
-    }
 
-    public SeatChargingStationSmartObject(SingleItemReadWriteBuffer<Boolean> onOffPowerOutlet,
-                                          SingleItemReadWriteBuffer<Double> batteryCharge,
-                                          SingleItemReadWriteBuffer<Double> energyConsumption,
-                                          String subfix,
-                                          int deviceIndex) {
+    public SeatChargingStationSmartObject(ActuatorDriver<Boolean> seatChargerActuator,
+                                          SensorDriver<Double> batteryChargeSensor,
+                                          SensorDriver<Double> energyConsumptionSensor,
+                                          String deviceId) {
         super();
 
-        String deviceId = String.format("seat-charging-station-%s-%04d", subfix, deviceIndex);
+        //String deviceId = String.format("seat-charging-station-%s-%04d", subfix, deviceIndex);
 
-        this.add(new SeatChargerActuatorResource("seat-charger", deviceId));
-        this.add(new BatteryChargeSensorResource("battery-charge", deviceId));
-        this.add(new EnergyConsumptionSensorResource("energy-consumption", deviceId));
+        this.add(new SeatChargerActuatorResource("seat-charger", deviceId, seatChargerActuator));
+        this.add(new BatteryChargeSensorResource("battery-charge", deviceId, batteryChargeSensor));
+        this.add(new EnergyConsumptionSensorResource("energy-consumption", deviceId, energyConsumptionSensor));
     }
 
     public static void main(String[] args) {
-        SeatChargingStationSmartObject smartObject = new SeatChargingStationSmartObject();
+        SeatChargingStationSmartObject smartObject = new SeatChargingStationSmartObject(null, null, null, null);
         smartObject.start();
 
         smartObject.getRoot().getChildren().forEach(resource -> {

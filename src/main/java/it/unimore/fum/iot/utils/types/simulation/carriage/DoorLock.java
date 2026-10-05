@@ -1,5 +1,7 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
+import it.unimore.fum.iot.utils.types.drivers.SimulationActuatorDriver;
+import it.unimore.fum.iot.utils.types.drivers.SimulationSensorDriver;
 import it.unimore.fum.iot.utils.types.simulation.IBatteryCharged;
 import it.unimore.fum.iot.utils.types.simulation.defaults.DoorLockDefaults;
 
@@ -9,12 +11,40 @@ public class DoorLock implements IDoorLock, IBatteryCharged {
     private double batteryCharge;
     private boolean isBatteryCutoff;
 
-    private DoorLockDefaults defaults;
+    private final DoorLockDefaults defaults;
+
+    private SimulationActuatorDriver<Boolean> doorLockActuator;
+    private SimulationSensorDriver<Double> batteryChargeSensor;
+    private SimulationSensorDriver<Double> energyConsumptionSensor;
 
     public DoorLock(String configPath) {
         this.defaults = new DoorLockDefaults(configPath);
 
         this.batteryCharge = this.defaults.INITIAL_BATTERY_CHARGE;
+    }
+
+    public void connectDoorLockActuator(SimulationActuatorDriver<Boolean> doorLockActuator) {
+        this.doorLockActuator = doorLockActuator;
+    }
+
+    public SimulationActuatorDriver<Boolean> getDoorLockActuator() {
+        return doorLockActuator;
+    }
+
+    public void connectBatteryChargeSensor(SimulationSensorDriver<Double> batteryChargeSensor) {
+        this.batteryChargeSensor = batteryChargeSensor;
+    }
+
+    public SimulationSensorDriver<Double> getBatteryChargeSensor() {
+        return this.batteryChargeSensor;
+    }
+
+    public void connectEnergyConsumptionSensor(SimulationSensorDriver<Double> energyConsumptionSensor) {
+        this.energyConsumptionSensor = energyConsumptionSensor;
+    }
+
+    public SimulationSensorDriver<Double> getEnergyConsumptionSensor() {
+        return this.energyConsumptionSensor;
     }
 
     @Override
@@ -53,7 +83,7 @@ public class DoorLock implements IDoorLock, IBatteryCharged {
     }
 
     @Override
-    public void reconnect() {
+    public void repair() {
         this.isBatteryCutoff = false;
     }
 

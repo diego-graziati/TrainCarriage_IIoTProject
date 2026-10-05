@@ -1,16 +1,32 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.tools.ModelStateChangeNotifier;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+
 public class TemperatureSensorModel {
     private long timestamp;
     private double temperature;
 
     private String temperatureUnit;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public TemperatureSensorModel() {
+    private ModelStateChangeNotifier listener;
+
+    public TemperatureSensorModel(SensorDriver<Double> temperatureSensor) {
         this.timestamp = System.currentTimeMillis();
         this.temperature = 10.0;
         this.temperatureUnit = "Cel";
+
+        temperatureSensor.registerListeners(val -> {
+            this.temperature = val;
+
+            if (this.listener != null) {
+                this.listener.onStateChange();
+            }
+        });
+    }
+
+    public void setOnStateChange(ModelStateChangeNotifier listener) {
+        this.listener = listener;
     }
 
     public long getTimestamp() {

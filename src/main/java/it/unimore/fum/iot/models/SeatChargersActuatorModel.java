@@ -1,13 +1,18 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
+
 public class SeatChargersActuatorModel {
     private long timestamp;
     private boolean isActive;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public SeatChargersActuatorModel() {
+    private final ActuatorDriver<Boolean> seatChargerActuator;
+
+    public SeatChargersActuatorModel(ActuatorDriver<Boolean> seatChargerActuator) {
         this.timestamp = System.currentTimeMillis();
         this.isActive = true;
+
+        this.seatChargerActuator = seatChargerActuator;
     }
 
     public long getTimestamp() {
@@ -24,6 +29,7 @@ public class SeatChargersActuatorModel {
 
     public void setActive(boolean active) {
         this.isActive = active;
+        this.seatChargerActuator.execute(this.isActive);
     }
 
     @Override

@@ -5,7 +5,9 @@ import it.unimore.fum.iot.models.SwitchOnOffActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
 import org.eclipse.californium.core.CoapResource;
+import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
@@ -20,15 +22,13 @@ public class SwitchOnOffActuatorResource extends CoapResource {
     private String devideId = null;
     private Gson gson = null;
 
-    public SwitchOnOffActuatorResource(String name, String deviceId) {
+    public SwitchOnOffActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> lightOnOffActuator) {
         super(name);
         this.devideId = deviceId;
-        this.init();
-    }
 
-    private void init() {
+        // INIT!
         this.gson = new Gson();
-        this.model = new SwitchOnOffActuatorModel();
+        this.model = new SwitchOnOffActuatorModel(lightOnOffActuator);
 
         getAttributes().addAttribute(OBJECT_TITLE);
         getAttributes().addAttribute("rt", "it.unimore.device.actuator.switch_on_off");
@@ -56,15 +56,54 @@ public class SwitchOnOffActuatorResource extends CoapResource {
         }
     }
 
-    //TODO: IMPLEMENT!!
     @Override
     public void handleGET(CoapExchange exchange) {
-        super.handleGET(exchange);
+
+        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+            Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+
+            if (jsonSenmlResponse.isPresent()) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+            }
+        } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n" + this.model.getTimestamp(),
+                    exchange.getRequestOptions().getAccept());
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
     }
 
-    // TODO: IMPLEMENT!!
     @Override
     public void handlePUT(CoapExchange exchange) {
-        super.handlePUT(exchange);
+
+        if (exchange.getRequestPayload() != null) {
+
+            boolean isOn = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+
+            this.model.setOn(isOn);
+
+            if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                    exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+                Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+
+                if (jsonSenmlResponse.isPresent()) {
+                    exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+                } else {
+                    exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+                }
+            } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+                        + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+            }
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
     }
 }
