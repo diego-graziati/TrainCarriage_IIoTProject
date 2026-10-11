@@ -1,21 +1,26 @@
 package it.unimore.fum.iot.modules.smart_objects;
 
 import it.unimore.fum.iot.modules.SmartObjectModule;
-import it.unimore.fum.iot.resources.BatteryChargeSensorResource;
-import it.unimore.fum.iot.resources.DoorSensorResource;
-import it.unimore.fum.iot.resources.EnergyConsumptionSensorResource;
-import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
+import it.unimore.fum.iot.coap.resources.BatteryChargeSensorResource;
+import it.unimore.fum.iot.coap.resources.DoorSensorResource;
+import it.unimore.fum.iot.coap.resources.EnergyConsumptionSensorResource;
 import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+import org.eclipse.californium.core.network.CoapEndpoint;
 
 public class DoorSensorSmartObject extends SmartObjectModule {
 
     public DoorSensorSmartObject(SensorDriver<Boolean> isDoorOpenSensor,
                                  SensorDriver<Double> batteryChargeSensor,
                                  SensorDriver<Double> energyConsumptionSensor,
-                                 String deviceId) {
-        super();
+                                 CoapEndpoint endpoint,
+                                 String deviceId,
+                                 String rdUriInfoConfigPath,
+                                 String loggerGroupName) {
+        super(deviceId, rdUriInfoConfigPath, loggerGroupName);
 
-        // String deviceId = String.format("door-sensor-%s-%04d", subfix, deviceIndex);
+        if (endpoint != null) {
+            this.addEndpoint(endpoint);
+        }
 
         this.add(new DoorSensorResource("door", deviceId, isDoorOpenSensor));
         this.add(new BatteryChargeSensorResource("battery-charge", deviceId, batteryChargeSensor));
@@ -23,7 +28,15 @@ public class DoorSensorSmartObject extends SmartObjectModule {
     }
 
     public static void main(String[] args) {
-        DoorSensorSmartObject smartObject = new DoorSensorSmartObject(null, null, null, null);
+        DoorSensorSmartObject smartObject = new DoorSensorSmartObject(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
         smartObject.start();
 
         smartObject.getRoot().getChildren().forEach(resource -> {

@@ -1,7 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.DoorSensorModel;
+import it.unimore.fum.iot.models.BatteryChargeSensorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -13,33 +13,37 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
-public class DoorSensorResource extends CoapResource {
+public class BatteryChargeSensorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "DoorSensor";
+    private static final String OBJECT_TITLE = "BatteryChargeSensor";
     private static final Number SENSOR_VERSION = 0.1;
 
-    private DoorSensorModel model = null;
+    private BatteryChargeSensorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public DoorSensorResource(String name, String devideId, SensorDriver<Boolean> isDoorOpenSensor) {
+    public BatteryChargeSensorResource(String name, String devideId, SensorDriver<Double> batteryChargeSensor) {
         super(name);
         this.devideId = devideId;
 
-        // INIT!
+        // INIT()
         this.gson = new Gson();
-        this.model = new DoorSensorModel(isDoorOpenSensor);
+        this.model = new BatteryChargeSensorModel(batteryChargeSensor);
 
         setObservable(true);
         setObserveType(CoAP.Type.CON);
 
         getAttributes().setTitle(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.sensor.door");
+        getAttributes().addAttribute("rt", "it.unimore.device.sensor.battery_charge");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_S.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
 
         this.model.setOnStateChange(this::changed);
+    }
+
+    private void init() {
+
     }
 
     private Optional<String> getJsonSenmlResponse() {
@@ -50,7 +54,8 @@ public class DoorSensorResource extends CoapResource {
             senMLRecord.setBn(this.devideId);
             senMLRecord.setN(this.getName());
             senMLRecord.setBver(SENSOR_VERSION);
-            senMLRecord.setVb(this.model.isOpen());
+            senMLRecord.setU(this.model.getBatteryChargeUnit());
+            senMLRecord.setV(this.model.getBatteryCharge());
             senMLRecord.setT(this.model.getTimestamp());
 
             senMLPack.add(senMLRecord);
@@ -61,9 +66,26 @@ public class DoorSensorResource extends CoapResource {
         }
     }
 
-    //TODO: IMPLEMENT!
     @Override
     public void handleGET(CoapExchange exchange) {
-        super.handleGET(exchange);
+
+        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+
+            Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+
+            if (jsonSenmlResponse.isPresent()) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+            } else {
+                exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+            }
+
+        } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.getBatteryChargeUnit() + "\n"
+                    + this.model.getBatteryCharge() + "\n"
+                    + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+        } else {
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+        }
     }
 }

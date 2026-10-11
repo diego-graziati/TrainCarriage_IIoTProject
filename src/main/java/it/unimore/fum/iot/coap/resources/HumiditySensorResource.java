@@ -1,4 +1,4 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
 import it.unimore.fum.iot.models.HumiditySensorModel;

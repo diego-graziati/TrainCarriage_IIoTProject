@@ -17,6 +17,7 @@
         <californium.version>2.4.1</californium.version>
         <javadoc.version>3.12.0</javadoc.version>
         <javatuplets.version>1.2</javatuplets.version>
+        <plantuml.version>2.1.2</plantuml.version>
     </properties>
 
     <dependencies>
@@ -29,11 +30,6 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>${javadoc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.javatuples</groupId>
@@ -49,8 +45,31 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${javadoc.version}</version>
                 <configuration>
+                    <doclet>nl.talsmasoftware.umldoclet.UMLDoclet</doclet>
+                    <docletArtifact>
+                        <groupId>nl.talsmasoftware</groupId>
+                        <artifactId>umldoclet</artifactId>
+                        <version>${plantuml.version}</version>
+                    </docletArtifact>
+
+                    <legacyMode>true</legacyMode>
+
+                    <additionalOptions>
+                        <!--<additionalOption>quiet</additionalOption>-->
+                    </additionalOptions>
+
+                    <show>private</show>
+                    <failOnError>false</failOnError>
                     <doclint>none</doclint>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

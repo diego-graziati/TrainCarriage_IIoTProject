@@ -1,5 +1,6 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
+import it.unimore.fum.iot.utils.Paths;
 import it.unimore.fum.iot.utils.types.drivers.SimulationSensorDriver;
 import it.unimore.fum.iot.utils.types.simulation.*;
 import it.unimore.fum.iot.utils.types.simulation.defaults.DoorDefaults;

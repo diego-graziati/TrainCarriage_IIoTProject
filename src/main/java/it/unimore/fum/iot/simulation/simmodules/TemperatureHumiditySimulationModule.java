@@ -1,7 +1,7 @@
 package it.unimore.fum.iot.simulation.simmodules;
 
 import it.unimore.fum.iot.Main;
-import it.unimore.fum.iot.utils.types.simulation.Paths;
+import it.unimore.fum.iot.utils.Paths;
 import it.unimore.fum.iot.utils.types.simulation.carriage.Carriage;
 import it.unimore.fum.iot.utils.types.simulation.defaults.TemperatureSimulationDefaults;
 

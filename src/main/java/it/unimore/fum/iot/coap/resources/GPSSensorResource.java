@@ -1,8 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.BatteryChargeSensorModel;
-import it.unimore.fum.iot.models.EnergyConsumptionSensorModel;
+import it.unimore.fum.iot.models.GPSSensorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -11,31 +10,31 @@ import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.server.resources.CoapExchange;
+import org.javatuples.Pair;
 
 import java.util.Optional;
 
-public class EnergyConsumptionSensorResource extends CoapResource {
+public class GPSSensorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "EnergyConsumptionSensor";
+    private static final String OBJECT_TITLE = "GPSSensor";
     private static final Number SENSOR_VERSION = 0.1;
 
-    private EnergyConsumptionSensorModel model = null;
+    private GPSSensorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public EnergyConsumptionSensorResource(String name, String devideId, SensorDriver<Double> energyConsumptionSensor) {
+    public GPSSensorResource(String name, String deviceId, SensorDriver<Pair<Double, Double>> gpsSensor) {
         super(name);
-        this.devideId = devideId;
+        this.devideId = deviceId;
 
-        // INIT!
         this.gson = new Gson();
-        this.model = new EnergyConsumptionSensorModel(energyConsumptionSensor);
+        this.model = new GPSSensorModel(gpsSensor);
 
         setObservable(true);
         setObserveType(CoAP.Type.CON);
 
         getAttributes().addAttribute(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.sensor.energy_consumption");
+        getAttributes().addAttribute("rt", "it.unimore.device.sensor.gps");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_S.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
@@ -49,13 +48,22 @@ public class EnergyConsumptionSensorResource extends CoapResource {
 
             SenMLRecord senMLRecord = new SenMLRecord();
             senMLRecord.setBn(this.devideId);
-            senMLRecord.setN(this.getName());
             senMLRecord.setBver(SENSOR_VERSION);
-            senMLRecord.setU(this.model.getEnergyConsumptionUnit());
-            senMLRecord.setV(this.model.getEnergyConsumption());
             senMLRecord.setT(this.model.getTimestamp());
 
+            SenMLRecord longitudeSenMLRecord = new SenMLRecord();
+            longitudeSenMLRecord.setN("longitude");
+            longitudeSenMLRecord.setU(this.model.getLongitudeUnit());
+            longitudeSenMLRecord.setV(this.model.getLongitude());
+
+            SenMLRecord latitudeSenMLRecord = new SenMLRecord();
+            latitudeSenMLRecord.setN("latitude");
+            latitudeSenMLRecord.setU(this.model.getLatitudeUnit());
+            latitudeSenMLRecord.setV(this.model.getLatitude());
+
             senMLPack.add(senMLRecord);
+            senMLPack.add(longitudeSenMLRecord);
+            senMLPack.add(latitudeSenMLRecord);
 
             return Optional.of(this.gson.toJson(senMLPack));
         }catch(Exception e){
@@ -77,9 +85,11 @@ public class EnergyConsumptionSensorResource extends CoapResource {
                 exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
             }
         } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.getEnergyConsumptionUnit() + "\n"
-                    + this.model.getEnergyConsumption() + "\n"
-                    + this.model.getTimestamp() + "\n", exchange.getRequestOptions().getAccept());
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.getLongitudeUnit() + "\n"
+                    + this.model.getLongitude() + "\n"
+                    + this.model.getLatitudeUnit() + "\n"
+                    + this.model.getLatitude() + "\n"
+                    + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
         } else {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
         }

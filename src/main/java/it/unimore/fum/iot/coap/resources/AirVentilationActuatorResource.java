@@ -1,7 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.TrashBinLockActuatorModel;
+import it.unimore.fum.iot.models.AirVentilationActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -13,25 +13,25 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
-public class TrashBinLockActuatorResource extends CoapResource {
+public class AirVentilationActuatorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "TrashBinLockActuator";
+    private static final String OBJECT_TITLE = "AirVentilationActuator";
     private static final Number ACTUATOR_VERSION = 0.1;
 
-    private TrashBinLockActuatorModel model = null;
+    private AirVentilationActuatorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public TrashBinLockActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> trashBinLockActuator) {
+    public AirVentilationActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> onOffAirVentilationActuator) {
         super(name);
         this.devideId = deviceId;
 
         // INIT!
         this.gson = new Gson();
-        this.model = new TrashBinLockActuatorModel(trashBinLockActuator);
+        this.model = new AirVentilationActuatorModel(onOffAirVentilationActuator);
 
         getAttributes().addAttribute(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.actuator.trash_bin_lock");
+        getAttributes().addAttribute("rt", "it.unimore.device.actuator.air_ventilation");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_A.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
@@ -43,10 +43,10 @@ public class TrashBinLockActuatorResource extends CoapResource {
 
             SenMLRecord senMLRecord = new SenMLRecord();
             senMLRecord.setBn(this.devideId);
-            senMLRecord.setN(this.getName());
             senMLRecord.setBver(ACTUATOR_VERSION);
+            senMLRecord.setN(this.getName());
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setVb(this.model.isLocked());
+            senMLRecord.setVb(this.model.isOn());
 
             senMLPack.add(senMLRecord);
 
@@ -58,6 +58,7 @@ public class TrashBinLockActuatorResource extends CoapResource {
 
     @Override
     public void handleGET(CoapExchange exchange) {
+
         if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                 exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
 
@@ -69,7 +70,7 @@ public class TrashBinLockActuatorResource extends CoapResource {
                 exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
             }
         } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isLocked() + "\n"
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
                     + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
         } else {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
@@ -81,9 +82,9 @@ public class TrashBinLockActuatorResource extends CoapResource {
 
         if (exchange.getRequestPayload() != null) {
 
-            boolean trashBinLockStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+            boolean airVentilationStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
 
-            this.model.setLocked(trashBinLockStatus);
+            this.model.setOn(airVentilationStatus);
 
             if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                     exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
@@ -96,7 +97,7 @@ public class TrashBinLockActuatorResource extends CoapResource {
                     exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
                 }
             } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isLocked() + "\n"
+                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
                         + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
             } else {
                 exchange.respond(CoAP.ResponseCode.BAD_REQUEST);

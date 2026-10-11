@@ -1,8 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.DehumidifierActuatorModel;
-import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
+import it.unimore.fum.iot.models.TrashBinLockActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -14,24 +13,25 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
-public class DehumidifierActuatorResource extends CoapResource {
+public class TrashBinLockActuatorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "DehumidifierActuator";
+    private static final String OBJECT_TITLE = "TrashBinLockActuator";
     private static final Number ACTUATOR_VERSION = 0.1;
 
-    private DehumidifierActuatorModel model = null;
+    private TrashBinLockActuatorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public DehumidifierActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> onOffDehumidifier) {
+    public TrashBinLockActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> trashBinLockActuator) {
         super(name);
         this.devideId = deviceId;
 
+        // INIT!
         this.gson = new Gson();
-        this.model = new DehumidifierActuatorModel(onOffDehumidifier);
+        this.model = new TrashBinLockActuatorModel(trashBinLockActuator);
 
         getAttributes().addAttribute(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.actuator.dehumidifier");
+        getAttributes().addAttribute("rt", "it.unimore.device.actuator.trash_bin_lock");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_A.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
@@ -46,7 +46,7 @@ public class DehumidifierActuatorResource extends CoapResource {
             senMLRecord.setN(this.getName());
             senMLRecord.setBver(ACTUATOR_VERSION);
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setVb(this.model.isOn());
+            senMLRecord.setVb(this.model.isLocked());
 
             senMLPack.add(senMLRecord);
 
@@ -58,18 +58,18 @@ public class DehumidifierActuatorResource extends CoapResource {
 
     @Override
     public void handleGET(CoapExchange exchange) {
-
         if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                 exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
 
             Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+
             if (jsonSenmlResponse.isPresent()) {
                 exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
             } else {
                 exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
             }
         } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isLocked() + "\n"
                     + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
         } else {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
@@ -81,9 +81,9 @@ public class DehumidifierActuatorResource extends CoapResource {
 
         if (exchange.getRequestPayload() != null) {
 
-            boolean dehumidifierStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+            boolean trashBinLockStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
 
-            this.model.setOn(dehumidifierStatus);
+            this.model.setLocked(trashBinLockStatus);
 
             if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                     exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
@@ -96,7 +96,7 @@ public class DehumidifierActuatorResource extends CoapResource {
                     exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
                 }
             } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isLocked() + "\n"
                         + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
             } else {
                 exchange.respond(CoAP.ResponseCode.BAD_REQUEST);

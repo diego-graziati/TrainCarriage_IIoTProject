@@ -1,7 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.AirTemperatureActuatorModel;
+import it.unimore.fum.iot.models.SwitchOnOffActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -13,24 +13,25 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
-public class AirTemperatureActuatorResource extends CoapResource {
+public class SwitchOnOffActuatorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "AirTemperatureActuator";
+    private static final String OBJECT_TITLE = "SwitchOnOffActuator";
     private static final Number ACTUATOR_VERSION = 0.1;
 
-    private AirTemperatureActuatorModel model = null;
+    private SwitchOnOffActuatorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public AirTemperatureActuatorResource(String name, String deviceId, ActuatorDriver<Double> setTargetTemperatureActuator) {
+    public SwitchOnOffActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> lightOnOffActuator) {
         super(name);
         this.devideId = deviceId;
 
+        // INIT!
         this.gson = new Gson();
-        this.model = new AirTemperatureActuatorModel(setTargetTemperatureActuator);
+        this.model = new SwitchOnOffActuatorModel(lightOnOffActuator);
 
         getAttributes().addAttribute(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.actuator.air_temperature");
+        getAttributes().addAttribute("rt", "it.unimore.device.actuator.switch_on_off");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_A.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
@@ -42,11 +43,10 @@ public class AirTemperatureActuatorResource extends CoapResource {
 
             SenMLRecord senMLRecord = new SenMLRecord();
             senMLRecord.setBn(this.devideId);
-            senMLRecord.setBver(ACTUATOR_VERSION);
             senMLRecord.setN(this.getName());
+            senMLRecord.setBver(ACTUATOR_VERSION);
+            senMLRecord.setVb(this.model.isOn());
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setU(this.model.getTargetTemperatureUnit());
-            senMLRecord.setV(this.model.getTargetTemperature());
 
             senMLPack.add(senMLRecord);
 
@@ -70,9 +70,8 @@ public class AirTemperatureActuatorResource extends CoapResource {
                 exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
             }
         } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.getTargetTemperatureUnit() + "\n"
-                    + this.model.getTargetTemperature() + "\n"
-                    + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n" + this.model.getTimestamp(),
+                    exchange.getRequestOptions().getAccept());
         } else {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
         }
@@ -82,10 +81,10 @@ public class AirTemperatureActuatorResource extends CoapResource {
     public void handlePUT(CoapExchange exchange) {
 
         if (exchange.getRequestPayload() != null) {
-            double targetTemperature = Double.parseDouble(new String(exchange.getRequestPayload()));
 
-            //TODO: implement guards!
-            this.model.setTargetTemperature(targetTemperature);
+            boolean isOn = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+
+            this.model.setOn(isOn);
 
             if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                     exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
@@ -98,8 +97,7 @@ public class AirTemperatureActuatorResource extends CoapResource {
                     exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
                 }
             } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.getTargetTemperatureUnit() + "\n"
-                        + this.model.getTargetTemperature() + "\n"
+                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
                         + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
             } else {
                 exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
