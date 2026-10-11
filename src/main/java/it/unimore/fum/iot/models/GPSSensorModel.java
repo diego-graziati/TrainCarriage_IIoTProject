@@ -1,5 +1,9 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.tools.ModelStateChangeNotifier;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+import org.javatuples.Pair;
+
 public class GPSSensorModel {
     private long timestamp;
     private double longitude;
@@ -8,13 +12,28 @@ public class GPSSensorModel {
     private String longitudeUnit;
     private String latitudeUnit;
 
+    private ModelStateChangeNotifier listener;
+
     //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public GPSSensorModel() {
+    public GPSSensorModel(SensorDriver<Pair<Double, Double>> gpsSensor) {
         this.timestamp = System.currentTimeMillis();
         this.longitude = 0;
         this.latitude = 0;
         this.longitudeUnit = "lon";
         this.latitudeUnit = "lat";
+
+        gpsSensor.registerListeners(val -> {
+            this.longitude = val.getValue0();
+            this.latitude = val.getValue1();
+
+            if (listener != null) {
+                this.listener.onStateChange();
+            }
+        });
+    }
+
+    public void setOnStateChange(ModelStateChangeNotifier listener) {
+        this.listener = listener;
     }
 
     public long getTimestamp() {

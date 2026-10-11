@@ -1,18 +1,11 @@
 package it.unimore.fum.iot.simulation.simmodules;
 
 import it.unimore.fum.iot.Main;
-import it.unimore.fum.iot.simulation.buffers.BufferReader;
-import it.unimore.fum.iot.simulation.buffers.BufferWriter;
-import it.unimore.fum.iot.simulation.buffers.SingleItemReadWriteBuffer;
-import it.unimore.fum.iot.utils.types.BrightnessLevelsEnum;
-import it.unimore.fum.iot.utils.types.collectors.CarriageBuffersCollector;
-import it.unimore.fum.iot.utils.types.simulation.Paths;
+import it.unimore.fum.iot.utils.Paths;
 import it.unimore.fum.iot.utils.types.simulation.carriage.*;
 import it.unimore.fum.iot.utils.types.simulation.defaults.CarriageSimulationDefaults;
 import org.javatuples.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,7 +24,6 @@ public class CarriageSimulationModule extends BaseSimulationModule {
     private final Carriage carriage;
     private long simulationStepCounter;
     private final Random random;
-    private final CarriageBuffersCollector buffers;
 
     private final long EMBARK_PHASE_FIRST_SIM_STEP;
     private final long BEGIN_TRAVEL_PHASE_FIST_SIM_STEP;
@@ -41,7 +33,7 @@ public class CarriageSimulationModule extends BaseSimulationModule {
     private final long CARRIAGE_COMPLETE_STOP_SIM_STEP;
     private final long EMERGENCY_STARTING_STEP;
 
-    public CarriageSimulationModule(Carriage carriage, CarriageBuffersCollector buffers, int updateFrequency) {
+    public CarriageSimulationModule(Carriage carriage, int updateFrequency) {
         super(new CarriageSimulationDefaults(Paths.Config.Simulation.CARRIAGE), updateFrequency);
 
         this.defaults = new CarriageSimulationDefaults(Paths.Config.Simulation.CARRIAGE);
@@ -55,7 +47,6 @@ public class CarriageSimulationModule extends BaseSimulationModule {
         this.airVentilationExecutor = Executors.newScheduledThreadPool(1);
         this.trashBinsExecutor = Executors.newScheduledThreadPool(1);
         this.random = new Random();
-        this.buffers = buffers;
 
         this.EMBARK_PHASE_FIRST_SIM_STEP = 0;
         this.BEGIN_TRAVEL_PHASE_FIST_SIM_STEP = this.defaults.EMBARK_PHASE_LENGTH;
@@ -111,85 +102,36 @@ public class CarriageSimulationModule extends BaseSimulationModule {
         this.doorsSimExecutor.scheduleAtFixedRate(() -> {
             //IMPORTANT RULE: DATA CAN ONLY BE SENT TO THE SENSORS AND RECEIVED BY ACTUATORS IF THE CORRESPONDING
             //SMART OBJECTS HAVE ENOUGH BATTERY TO PROCESS IT. OTHERWISE, THE DATA WILL BE DISCARDED.
-            int i=0;
             for (Door door: this.carriage.getExternalDoors()) {
-                this.resolveDoorSim(door, i);
-                i ++;
+                this.resolveDoorSim(door);
             }
             for (Door door: this.carriage.getInternalDoors()) {
-                this.resolveDoorSim(door, i);
-                i++;
+                this.resolveDoorSim(door);
             }
 
         }, 0, 60/this.updateFrequency, TimeUnit.SECONDS);
 
         this.carriageLightsSimExecutor.scheduleAtFixedRate(() -> {
-            int i=0;
             for (Light light: this.carriage.getCarriageLights()) {
-                resolveLightSim(light, i);
-                i++;
+                resolveLightSim(light);
             }
 
             for (Toilet toilet: this.carriage.getToilets()) {
-                resolveLightSim(toilet.getToiletLights(), i);
-                i++;
+                resolveLightSim(toilet.getToiletLights());
             }
         }, 0, 60/this.updateFrequency, TimeUnit.SECONDS);
 
         this.seatsSimExecutor.scheduleAtFixedRate(() -> {
-            int i=0;
-
             for (Seat seat: this.carriage.getSeats()) {
-                resolveSeatSim(seat, i);
-                i++;
+                resolveSeatSim(seat);
             }
         }, 0, 60/this.updateFrequency, TimeUnit.SECONDS);
 
-        this.airVentilationExecutor.scheduleAtFixedRate(() -> {
-            if (this.carriage.getAirVentilation().getBatteryCharge() > 0.0) {
-                if (this.buffers.getAirVentilationOnOffBufferReader().read()) {
-                    this.carriage.getAirVentilation().openAirVents();
-                } else {
-                    this.carriage.getAirVentilation().closeAirVents();
-                }
-            }
-
-            double airVentilationConsumption;
-            if (this.carriage.getAirVentilation().isAirVentilationOn() || this.carriage.getAirVentilation().isDehumidifierOn()) {
-                if (this.carriage.getAirVentilation().isCutoff()) {
-                    airVentilationConsumption = this.carriage.getAirVentilation().getDischargeRate() -
-                            this.carriage.getAirVentilation().getNaturalDischargeRate();
-                    this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
-                        - airVentilationConsumption);
-                } else {
-                    airVentilationConsumption = this.carriage.getAirVentilation().getDischargeRate()
-                            - this.carriage.getAirVentilation().getNaturalDischargeRate();
-                    this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
-                    + this.carriage.getAirVentilation().getChargeRate() - airVentilationConsumption);
-                }
-            } else {
-                if (this.carriage.getAirVentilation().isCutoff()) {
-                    airVentilationConsumption = this.carriage.getAirVentilation().getNaturalDischargeRate();
-                    this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
-                            - airVentilationConsumption);
-                } else {
-                    airVentilationConsumption = this.carriage.getAirVentilation().getNaturalDischargeRate();
-                    this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
-                            + this.carriage.getAirVentilation().getChargeRate() - airVentilationConsumption);
-                }
-            }
-
-            if (this.carriage.getAirVentilation().getBatteryCharge() > 0.0) {
-                this.buffers.getAirVentilationChargeBufferWriter().write(this.carriage.getAirVentilation().getBatteryCharge());
-                this.buffers.getAirVentilationConsumptionBufferWriter().write(airVentilationConsumption);
-            }
-        }, 0, 60/this.updateFrequency, TimeUnit.SECONDS);
+        this.airVentilationExecutor.scheduleAtFixedRate(this::resolveAirVentilationSim, 0, 60/this.updateFrequency, TimeUnit.SECONDS);
 
         this.trashBinsExecutor.scheduleAtFixedRate(() -> {
-            int i=0;
             for (TrashBin bin: this.carriage.getTrashBins()) {
-                resolveTrashBinsSim(bin, i);
-                i++;
+                resolveTrashBinsSim(bin);
             }
         }, 0, 60/this.updateFrequency, TimeUnit.SECONDS);
         Main.CARRIAGE_SIM_LOGGER.info("Carriage simulation started");
@@ -198,13 +140,22 @@ public class CarriageSimulationModule extends BaseSimulationModule {
     @Override
     public void stop() {
         this.carriagePhaseExecutor.shutdown();
+        this.doorsSimExecutor.shutdown();
+        this.carriageLightsSimExecutor.shutdown();
+        this.seatsSimExecutor.shutdown();
+        this.airVentilationExecutor.shutdown();
+        this.trashBinsExecutor.shutdown();
     }
 
     //Utility methods
-    private void resolveDoorSim(Door door, int i) {
-        if (door.getPresenceMonitor().getBatteryCharge() > 0.0) {
-            this.buffers.getDoorsInOutBufferWriters().get(i).write(new Pair<>(door.getPresenceMonitor().getIn(), door.getPresenceMonitor().getOut()));
-            this.buffers.getDoorsOpenCloseBufferWriters().get(i).write(door.isDoorOpen());
+    private void resolveDoorSim(Door door) {
+        if (door.getPresenceMonitor().getBatteryCharge() > 0.0 && door.getPresenceMonitor().getPresenceMonitorSensor() != null) {
+            door.getPresenceMonitor().getPresenceMonitorSensor().update(
+                    new Pair<>(door.getPresenceMonitor().getIn(), door.getPresenceMonitor().getOut()));
+
+        }
+        if (door.getBatteryCharge() > 0.0 && door.getDoorOpenSensor() != null) {
+            door.getDoorOpenSensor().update(door.isDoorOpen());
         }
 
         double doorPresenceMonitorChargeConsumption;
@@ -217,9 +168,13 @@ public class CarriageSimulationModule extends BaseSimulationModule {
                     - doorPresenceMonitorChargeConsumption);
         }
 
-        if (door.getPresenceMonitor().getBatteryCharge() > 0.0) {
-            this.buffers.getDoorsPresenceMonitorsChargesBufferWriters().get(i).write(door.getPresenceMonitor().getBatteryCharge());
-            this.buffers.getDoorsPresenceMonitorsConsumptionBufferWriters().get(i).write(doorPresenceMonitorChargeConsumption);
+        if (door.getPresenceMonitor().getBatteryCharge() > 0.0 && door.getPresenceMonitor().getPresenceMonitorSensor() != null) {
+            if (door.getPresenceMonitor().getBatteryChargeSensor() != null) {
+                door.getPresenceMonitor().getBatteryChargeSensor().update(door.getPresenceMonitor().getBatteryCharge());
+            }
+            if (door.getPresenceMonitor().getEnergyConsumptionSensor() != null) {
+                door.getPresenceMonitor().getEnergyConsumptionSensor().update(doorPresenceMonitorChargeConsumption);
+            }
         }
 
         //FOR SAFETY REASONS, WHEN A DOOR OR ITS LOCK ARE OUT OF BATTERY CHARGE THEY CLOSE THEMSELVES. THEY CAN
@@ -228,12 +183,6 @@ public class CarriageSimulationModule extends BaseSimulationModule {
         if (door.getDoorLock().getBatteryCharge() <= 0.0 || door.getBatteryCharge() <= 0.0) {
             door.getDoorLock().lockDoor();
             door.closeDoor();
-        } else {
-            if (this.buffers.getDoorsLocksBufferReaders().get(i).read()) {
-                door.getDoorLock().lockDoor();
-            } else {
-                door.getDoorLock().unlockDoor();
-            }
         }
 
         double doorLockChargeConsumption;
@@ -255,23 +204,34 @@ public class CarriageSimulationModule extends BaseSimulationModule {
         }
 
         if (door.getDoorLock().getBatteryCharge() > 0.0) {
-            this.buffers.getDoorsLocksChargesBufferWriters().get(i).write(door.getDoorLock().getBatteryCharge());
-            this.buffers.getDoorsLocksConsumptionBufferWriters().get(i).write(doorLockChargeConsumption);
+            if (door.getDoorLock().getBatteryChargeSensor() != null) {
+                door.getDoorLock().getBatteryChargeSensor().update(door.getDoorLock().getBatteryCharge());
+            }
+            if (door.getDoorLock().getEnergyConsumptionSensor() != null) {
+                door.getDoorLock().getEnergyConsumptionSensor().update(doorLockChargeConsumption);
+            }
         }
         if (door.getBatteryCharge() > 0.0) {
-            this.buffers.getDoorsChargesBufferWriters().get(i).write(door.getBatteryCharge());
-            this.buffers.getDoorsChargeConsumptionBufferWriters().get(i).write(doorChargeConsumption);
+            if (door.getBatteryChargeSensor() != null) {
+                door.getBatteryChargeSensor().update(door.getBatteryCharge());
+            }
+            if (door.getEnergyConsumptionSensor() != null) {
+                door.getEnergyConsumptionSensor().update(doorChargeConsumption);
+            }
         }
+
+        //NO MATTER WHAT, THE DOORS AUTOMATICALLY CLOSE THEMSELVES.
+        door.closeDoor();
     }
 
-    private void resolveLightSim(Light light, int i) {
-        if (light.getBatteryCharge() > 0.0) {
-            if (this.buffers.getCarriageLightsOnOffBufferReaders().get(i).read()) {
+    private void resolveLightSim(Light light) {
+        /*if (light.getBatteryCharge() > 0.0) {
+            if (this.carriageLightsOnOffBufferReaders.get(i).read()) {
                 light.turnLightsOn();
             } else {
                 light.turnLightsOff();
             }
-        }
+        }*/
 
         double lightConsumption;
         if (light.isLightsOn()) {
@@ -297,33 +257,37 @@ public class CarriageSimulationModule extends BaseSimulationModule {
         }
 
         if (light.getBatteryCharge() > 0.0) {
-            this.buffers.getCarriageLightsChargesBufferWriters().get(i).write(light.getBatteryCharge());
-            this.buffers.getCarriageLightsConsumptionBufferWriters().get(i).write(lightConsumption);
+            if (light.getBatteryChargeSensor() != null) {
+                light.getBatteryChargeSensor().update(light.getBatteryCharge());
+            }
+            if (light.getEnergyConsumptionSensor() != null) {
+                light.getEnergyConsumptionSensor().update(lightConsumption);
+            }
         }
     }
 
-    private void resolveSeatSim(Seat seat, int i) {
-        if (seat.getLamp().getBatteryCharge() > 0.0) {
-            seat.getLamp().setBrightness(this.buffers.getSeatLampBrightnessBufferReaders().get(i).read());
+    private void resolveSeatSim(Seat seat) {
+        /*if (seat.getLamp().getBatteryCharge() > 0.0) {
+            seat.getLamp().setBrightness(this.seatLampBrightnessBufferReaders.get(i).read());
 
-            if (this.buffers.getSeatLampOnOffBufferReaders().get(i).read()) {
+            if (this.seatLampOnOffBufferReaders.get(i).read()) {
                 seat.getLamp().cutoff();
             } else {
-                seat.getLamp().reconnect();
+                seat.getLamp().repair();
             }
         } else {
             seat.getLamp().turnOff();
-        }
+        }*/
 
-        if (seat.getPowerOutlet().getBatteryCharge() > 0.0) {
-            if (this.buffers.getSeatPowerOutletOnOffBufferReaders().get(i).read()) {
+        /*if (seat.getPowerOutlet().getBatteryCharge() > 0.0) {
+            if (this.seatPowerOutletOnOffBufferReaders.get(i).read()) {
                 seat.getPowerOutlet().cutoff();
             } else {
-                seat.getPowerOutlet().reconnect();
+                seat.getPowerOutlet().repair();
             }
         } else {
             seat.getLamp().turnOff();
-        }
+        }*/
 
         double seatLampConsumption;
         if (seat.getLamp().isOn()) {
@@ -372,28 +336,100 @@ public class CarriageSimulationModule extends BaseSimulationModule {
         }
 
         if (seat.getLamp().getBatteryCharge() > 0.0) {
-            this.buffers.getSeatLampChargesBufferWriters().get(i).write(seat.getLamp().getBatteryCharge());
-            this.buffers.getSeatLampConsumptionBufferWriters().get(i).write(seatLampConsumption);
+            if (seat.getLamp().getBatteryChargeSensor() != null) {
+                seat.getLamp().getBatteryChargeSensor().update(seat.getLamp().getBatteryCharge());
+            }
+            if (seat.getLamp().getEnergyConsumptionSensor() != null) {
+                seat.getLamp().getEnergyConsumptionSensor().update(seatLampConsumption);
+            }
         }
 
         if (seat.getPowerOutlet().getBatteryCharge() > 0.0) {
-            this.buffers.getSeatPowerOutletChargesBufferWriters().get(i).write(seat.getPowerOutlet().getBatteryCharge());
-            this.buffers.getSeatPowerOutletConsumptionBufferWriters().get(i).write(powerOutletConsumption);
+            if (seat.getPowerOutlet().getBatteryChargeSensor() != null) {
+                seat.getPowerOutlet().getBatteryChargeSensor().update(seat.getPowerOutlet().getBatteryCharge());
+            }
+            if (seat.getPowerOutlet().getEnergyConsumptionSensor() != null) {
+                seat.getPowerOutlet().getEnergyConsumptionSensor().update(powerOutletConsumption);
+            }
         }
     }
 
-    private void resolveTrashBinsSim(TrashBin bin, int i) {
+    private void resolveAirVentilationSim() {
+        /*if (this.carriage.getAirVentilation().getBatteryCharge() > 0.0) {
+            if(this.airVentsOnOffBufferReader.read()) {
+                this.carriage.getAirVentilation().openAirVents();
+            } else {
+                this.carriage.getAirVentilation().closeAirVents();
+            }
+
+            if (this.airVentilationOnOffBufferReader.read()) {
+                this.carriage.getAirVentilation().turnAirVentilationOn();
+            } else {
+                this.carriage.getAirVentilation().turnAirVentilationOff();
+            }
+
+            if (this.dehumidifierOnOffBufferReader.read()) {
+                this.carriage.getAirVentilation().turnDehumidifierOn();
+            } else {
+                this.carriage.getAirVentilation().turnDehumidifierOff();
+            }
+        }*/
+
+        //FOR SAFETY REASONS, IF THE BATTERY CHARGE REACHES 0.0 THE AIR VENTS ARE OPENED, AS TO ENSURE AIR FLOW
+        //IN AN EMERGENCY SCENARIO!!
+        if (this.carriage.getAirVentilation().getBatteryCharge() <= 0.0) {
+            this.carriage.getAirVentilation().openAirVents();
+        }
+
+        double airVentilationConsumption;
+        if (this.carriage.getAirVentilation().isAirVentilationOn() || this.carriage.getAirVentilation().isDehumidifierOn()) {
+            if (this.carriage.getAirVentilation().isCutoff()) {
+                airVentilationConsumption = this.carriage.getAirVentilation().getDischargeRate() -
+                        this.carriage.getAirVentilation().getNaturalDischargeRate();
+                this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
+                        - airVentilationConsumption);
+            } else {
+                airVentilationConsumption = this.carriage.getAirVentilation().getDischargeRate()
+                        - this.carriage.getAirVentilation().getNaturalDischargeRate();
+                this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
+                        + this.carriage.getAirVentilation().getChargeRate() - airVentilationConsumption);
+            }
+        } else {
+            if (this.carriage.getAirVentilation().isCutoff()) {
+                airVentilationConsumption = this.carriage.getAirVentilation().getNaturalDischargeRate();
+                this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
+                        - airVentilationConsumption);
+            } else {
+                airVentilationConsumption = this.carriage.getAirVentilation().getNaturalDischargeRate();
+                this.carriage.getAirVentilation().setBatteryCharge(this.carriage.getAirVentilation().getBatteryCharge()
+                        + this.carriage.getAirVentilation().getChargeRate() - airVentilationConsumption);
+            }
+        }
+
+        if (this.carriage.getAirVentilation().getBatteryCharge() > 0.0) {
+            if (this.carriage.getAirVentilation().getBatteryChargerSensor() != null) {
+                this.carriage.getAirVentilation().getBatteryChargerSensor().update(this.carriage.getAirVentilation().getBatteryCharge());
+            }
+            if (this.carriage.getAirVentilation().getEnergyConsumptionSensor() != null) {
+                this.carriage.getAirVentilation().getEnergyConsumptionSensor().update(airVentilationConsumption);
+            }
+        }
+    }
+
+    private void resolveTrashBinsSim(TrashBin bin) {
         if (bin.getBatteryCharge() > 0.0) {
-            if (this.buffers.getTrashBinsOnOffBufferReaders().get(i).read()) {
+            /*if (this.trashBinsOnOffBufferReaders.get(i).read()) {
                 bin.lockOpening();
             } else {
                 bin.unlockOpening();
-            }
+            }*/
 
-            this.buffers.getTrashBinsFillPercentageBufferWriters().get(i).write(bin.getFillPercentage());
-            this.buffers.getTrashBinsInternalTemperatureBufferWriters().get(i).write(bin.getInternalTemperature());
-        } else {
-            bin.unlockOpening();
+            if (bin.getTrashFillPercentageSensor() != null) {
+                bin.getTrashFillPercentageSensor().update(bin.getFillPercentage());
+            }
+            if (bin.getInternalTrashTemperatureSensor() != null) {
+                bin.getInternalTrashTemperatureSensor().update(bin.getInternalTemperature());
+            }
         }
 
         double binConsumption;
@@ -408,8 +444,12 @@ public class CarriageSimulationModule extends BaseSimulationModule {
         }
 
         if (bin.getBatteryCharge() > 0.0) {
-            this.buffers.getTrashBinsChargesBufferWriters().get(i).write(bin.getBatteryCharge());
-            this.buffers.getTrashBinsConsumptionBufferWriters().get(i).write(binConsumption);
+            if (bin.getBatteryChargeSensor() != null) {
+                bin.getBatteryChargeSensor().update(bin.getBatteryCharge());
+            }
+            if (bin.getEnergyConsumptionSensor() != null) {
+                bin.getEnergyConsumptionSensor().update(binConsumption);
+            }
         }
     }
 }

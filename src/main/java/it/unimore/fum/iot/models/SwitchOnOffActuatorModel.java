@@ -1,13 +1,19 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.tools.ModelStateChangeNotifier;
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
+
 public class SwitchOnOffActuatorModel {
     private long timestamp;
     private boolean isOn;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public SwitchOnOffActuatorModel() {
+    private final ActuatorDriver<Boolean> lightOnOffActuator;
+
+    public SwitchOnOffActuatorModel(ActuatorDriver<Boolean> lightOnOffActuator) {
         this.timestamp = System.currentTimeMillis();
         this.isOn = false;
+
+        this.lightOnOffActuator = lightOnOffActuator;
     }
 
     public long getTimestamp() {
@@ -24,6 +30,7 @@ public class SwitchOnOffActuatorModel {
 
     public void setOn(boolean on) {
         isOn = on;
+        this.lightOnOffActuator.execute(this.isOn);
     }
 
     @Override

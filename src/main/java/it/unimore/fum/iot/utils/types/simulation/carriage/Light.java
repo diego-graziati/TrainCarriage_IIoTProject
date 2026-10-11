@@ -1,5 +1,7 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
+import it.unimore.fum.iot.utils.types.drivers.SimulationActuatorDriver;
+import it.unimore.fum.iot.utils.types.drivers.SimulationSensorDriver;
 import it.unimore.fum.iot.utils.types.simulation.IBatteryCharged;
 import it.unimore.fum.iot.utils.types.simulation.defaults.LightDefaults;
 
@@ -9,12 +11,40 @@ public class Light implements ILight, IBatteryCharged {
     private double batteryCharge;
     private boolean isBatteryCutoff;
 
-    private LightDefaults defaults;
+    private final LightDefaults defaults;
+
+    private SimulationActuatorDriver<Boolean> turnLightsOnOffActuator;
+    private SimulationSensorDriver<Double> batteryChargeSensor;
+    private SimulationSensorDriver<Double> energyConsumptionSensor;
 
     public Light(String configPath) {
         this.defaults = new LightDefaults(configPath);
         this.areLightsOn = this.defaults.INITIAL_LIGHTS_STATUS;
         this.batteryCharge = this.defaults.INITIAL_BATTERY_CHARGE;
+    }
+
+    public SimulationActuatorDriver<Boolean> getTurnLightsOnOffActuator() {
+        return turnLightsOnOffActuator;
+    }
+
+    public void connectTurnLightsOnOffActuator(SimulationActuatorDriver<Boolean> turnLightsOnOffActuator) {
+        this.turnLightsOnOffActuator = turnLightsOnOffActuator;
+    }
+
+    public SimulationSensorDriver<Double> getBatteryChargeSensor() {
+        return batteryChargeSensor;
+    }
+
+    public void connectBatteryChargeSensor(SimulationSensorDriver<Double> batteryChargeSensor) {
+        this.batteryChargeSensor = batteryChargeSensor;
+    }
+
+    public SimulationSensorDriver<Double> getEnergyConsumptionSensor() {
+        return energyConsumptionSensor;
+    }
+
+    public void connectEnergyConsumptionSensor(SimulationSensorDriver<Double> energyConsumptionSensor) {
+        this.energyConsumptionSensor = energyConsumptionSensor;
     }
 
     @Override
@@ -68,7 +98,7 @@ public class Light implements ILight, IBatteryCharged {
     }
 
     @Override
-    public void reconnect() {
+    public void repair() {
         this.isBatteryCutoff = false;
     }
 

@@ -1,13 +1,17 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
+
+import java.util.Objects;
+
 public class DoorLockActuatorModel {
     private boolean isLocked;
-
-    public DoorLockActuatorModel() {}
+    private final ActuatorDriver<Boolean> doorLockActuator;
 
     //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public DoorLockActuatorModel(boolean isLocked) {
-        this.isLocked = isLocked;
+    public DoorLockActuatorModel(ActuatorDriver<Boolean> doorLockActuator) {
+        this.isLocked = true;
+        this.doorLockActuator = doorLockActuator;
     }
 
     public boolean isLocked() {
@@ -16,6 +20,7 @@ public class DoorLockActuatorModel {
 
     public void setLocked(boolean locked) {
         isLocked = locked;
+        this.doorLockActuator.execute(locked);
     }
 
     @Override

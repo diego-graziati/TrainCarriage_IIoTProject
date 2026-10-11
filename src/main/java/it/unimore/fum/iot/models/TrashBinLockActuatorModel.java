@@ -1,13 +1,17 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
+
 public class TrashBinLockActuatorModel {
     private long timestamp;
     private boolean isLocked;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public TrashBinLockActuatorModel() {
+    private final ActuatorDriver<Boolean> trashBinLockActuator;
+
+    public TrashBinLockActuatorModel(ActuatorDriver<Boolean> trashBinLockActuator) {
         this.timestamp = System.currentTimeMillis();
         this.isLocked = false;
+        this.trashBinLockActuator = trashBinLockActuator;
     }
 
     public long getTimestamp() {
@@ -24,6 +28,7 @@ public class TrashBinLockActuatorModel {
 
     public void setLocked(boolean locked) {
         isLocked = locked;
+        this.trashBinLockActuator.execute(locked);
     }
 
     @Override

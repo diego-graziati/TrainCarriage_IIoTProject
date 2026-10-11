@@ -1,5 +1,7 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
+import it.unimore.fum.iot.utils.types.drivers.SimulationActuatorDriver;
+import it.unimore.fum.iot.utils.types.drivers.SimulationSensorDriver;
 import it.unimore.fum.iot.utils.types.simulation.IBatteryCharged;
 import it.unimore.fum.iot.utils.types.simulation.defaults.TrashBinDefaults;
 
@@ -13,6 +15,12 @@ public class TrashBin implements ITrashBin, IBatteryCharged {
 
     private final TrashBinDefaults defaults;
 
+    private SimulationActuatorDriver<Boolean> trashBinLockActuator;
+    private SimulationSensorDriver<Double> internalTrashTemperatureSensor;
+    private SimulationSensorDriver<Double> trashFillPercentageSensor;
+    private SimulationSensorDriver<Double> batteryChargeSensor;
+    private SimulationSensorDriver<Double> energyConsumptionSensor;
+
     public TrashBin(String configPath) {
         this.defaults = new TrashBinDefaults(configPath);
 
@@ -21,6 +29,46 @@ public class TrashBin implements ITrashBin, IBatteryCharged {
         this.trashFillPercentage = 0.0;
         this.internalTrashTemperature = 0.0;
         this.isTrashBinLocked = this.defaults.INITIAL_TRASH_BIN_LOCK_STATUS;
+    }
+
+    public SimulationActuatorDriver<Boolean> getTrashBinLockActuator() {
+        return trashBinLockActuator;
+    }
+
+    public void connectTrashBinLockActuator(SimulationActuatorDriver<Boolean> trashBinLockActuator) {
+        this.trashBinLockActuator = trashBinLockActuator;
+    }
+
+    public SimulationSensorDriver<Double> getInternalTrashTemperatureSensor() {
+        return internalTrashTemperatureSensor;
+    }
+
+    public void connectInternalTrashTemperatureSensor(SimulationSensorDriver<Double> internalTrashTemperatureSensor) {
+        this.internalTrashTemperatureSensor = internalTrashTemperatureSensor;
+    }
+
+    public SimulationSensorDriver<Double> getTrashFillPercentageSensor() {
+        return trashFillPercentageSensor;
+    }
+
+    public void connectTrashFillPercentageSensor(SimulationSensorDriver<Double> trashFillPercentageSensor) {
+        this.trashFillPercentageSensor = trashFillPercentageSensor;
+    }
+
+    public SimulationSensorDriver<Double> getBatteryChargeSensor() {
+        return batteryChargeSensor;
+    }
+
+    public void connectBatteryChargeSensor(SimulationSensorDriver<Double> batteryChargeSensor) {
+        this.batteryChargeSensor = batteryChargeSensor;
+    }
+
+    public SimulationSensorDriver<Double> getEnergyConsumptionSensor() {
+        return energyConsumptionSensor;
+    }
+
+    public void connectEnergyConsumptionSensor(SimulationSensorDriver<Double> energyConsumptionSensor) {
+        this.energyConsumptionSensor = energyConsumptionSensor;
     }
 
     @Override
@@ -59,7 +107,7 @@ public class TrashBin implements ITrashBin, IBatteryCharged {
     }
 
     @Override
-    public void reconnect() {
+    public void repair() {
         this.isBatteryCutoff = false;
     }
 

@@ -1,6 +1,9 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
 import it.unimore.fum.iot.utils.types.BrightnessLevelsEnum;
+import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+import it.unimore.fum.iot.utils.types.drivers.SimulationActuatorDriver;
+import it.unimore.fum.iot.utils.types.drivers.SimulationSensorDriver;
 import it.unimore.fum.iot.utils.types.simulation.IBatteryCharged;
 import it.unimore.fum.iot.utils.types.simulation.defaults.LampDefaults;
 
@@ -11,13 +14,50 @@ public class Lamp implements ILamp, IBatteryCharged {
     private double batteryCharge;
     private boolean isBatteryCutoff;
 
-    private LampDefaults defaults;
+    private final LampDefaults defaults;
+
+    private SimulationActuatorDriver<BrightnessLevelsEnum> brightnessActuator;
+    private SimulationActuatorDriver<Boolean> turnOnOffActuator;
+    private SimulationSensorDriver<Double> batteryChargeSensor;
+    private SimulationSensorDriver<Double> energyConsumptionSensor;
 
     public Lamp(String configPath) {
         this.defaults = new LampDefaults(configPath);
 
         this.isLampOn = this.defaults.INITIAL_LAMP_STATUS;
         this.batteryCharge = this.defaults.INITIAL_BATTERY_CHARGE;
+    }
+
+    public SimulationActuatorDriver<BrightnessLevelsEnum> getBrightnessActuator() {
+        return brightnessActuator;
+    }
+
+    public void connectBrightnessActuator(SimulationActuatorDriver<BrightnessLevelsEnum> brightnessActuator) {
+        this.brightnessActuator = brightnessActuator;
+    }
+
+    public SimulationActuatorDriver<Boolean> getTurnOnOffActuator() {
+        return turnOnOffActuator;
+    }
+
+    public void connectTurnOnOffActuator(SimulationActuatorDriver<Boolean> turnOnOffActuator) {
+        this.turnOnOffActuator = turnOnOffActuator;
+    }
+
+    public SimulationSensorDriver<Double> getBatteryChargeSensor() {
+        return batteryChargeSensor;
+    }
+
+    public void connectBatteryChargeSensor(SimulationSensorDriver<Double> batteryChargeSensor) {
+        this.batteryChargeSensor = batteryChargeSensor;
+    }
+
+    public SimulationSensorDriver<Double> getEnergyConsumptionSensor() {
+        return energyConsumptionSensor;
+    }
+
+    public void connectEnergyConsumptionSensor(SimulationSensorDriver<Double> energyConsumptionSensor) {
+        this.energyConsumptionSensor = energyConsumptionSensor;
     }
 
     @Override
@@ -81,7 +121,7 @@ public class Lamp implements ILamp, IBatteryCharged {
     }
 
     @Override
-    public void reconnect() {
+    public void repair() {
         this.isBatteryCutoff = false;
     }
 

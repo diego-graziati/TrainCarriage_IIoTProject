@@ -1,12 +1,12 @@
 package it.unimore.fum.iot.utils.types.simulation;
 
 public interface IBatteryCharged {
-    public double getBatteryCharge();
-    public void setBatteryCharge(double batteryCharge);
-    public double getNaturalDischargeRate();
-    public double getDischargeRate();
-    public double getChargeRate();
-    public boolean isCutoff();
-    public void cutoff();
-    public void reconnect();
+    double getBatteryCharge();
+    void setBatteryCharge(double batteryCharge);
+    double getNaturalDischargeRate();
+    double getDischargeRate();
+    double getChargeRate();
+    boolean isCutoff();
+    void cutoff();
+    void repair();
 }

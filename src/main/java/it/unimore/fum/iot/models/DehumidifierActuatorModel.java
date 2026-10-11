@@ -1,13 +1,17 @@
 package it.unimore.fum.iot.models;
 
+import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
+
 public class DehumidifierActuatorModel {
     private long timestamp;
-    private double humidity;
+    private boolean isOn;
 
-    //TODO: values should be obtained through a simulation and config files, not fixed values!
-    public DehumidifierActuatorModel() {
+    private final ActuatorDriver<Boolean> onOffDehumidifierActuator;
+
+    public DehumidifierActuatorModel(ActuatorDriver<Boolean> onOffDehumidifierActuator) {
         this.timestamp = System.currentTimeMillis();
-        this.humidity = 20.0;
+        this.isOn = false;
+        this.onOffDehumidifierActuator = onOffDehumidifierActuator;
     }
 
     public long getTimestamp() {
@@ -18,19 +22,19 @@ public class DehumidifierActuatorModel {
         this.timestamp = timestamp;
     }
 
-    public double getHumidity() {
-        return humidity;
+    public boolean isOn() {
+        return this.isOn;
     }
 
-    public void setHumidity(double humidity) {
-        this.humidity = humidity;
+    public void setOn(boolean isOn) {
+        this.isOn = isOn;
+        this.onOffDehumidifierActuator.execute(isOn);
     }
 
     @Override
     public String toString() {
         return "DehumidifierActuatorModel{" +
                 "timestamp=" + timestamp +
-                ", humidity=" + humidity +
                 '}';
     }
 }

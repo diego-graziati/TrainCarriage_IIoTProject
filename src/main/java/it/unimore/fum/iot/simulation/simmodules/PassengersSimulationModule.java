@@ -1,7 +1,7 @@
 package it.unimore.fum.iot.simulation.simmodules;
 
 import it.unimore.fum.iot.Main;
-import it.unimore.fum.iot.utils.types.simulation.Paths;
+import it.unimore.fum.iot.utils.Paths;
 import it.unimore.fum.iot.utils.types.simulation.carriage.*;
 import it.unimore.fum.iot.utils.types.simulation.defaults.PassengersSimulationDefaults;
 import it.unimore.fum.iot.utils.types.simulation.passenger.Passenger;
@@ -21,7 +21,7 @@ public class PassengersSimulationModule extends BaseSimulationModule {
 
     private final List<Passenger> onboardPassengers;
 
-    private Random random;
+    private final Random random;
 
     public PassengersSimulationModule(Carriage carriage, int updateFrequency) {
         super(new PassengersSimulationDefaults(Paths.Config.Simulation.PASSENGERS), updateFrequency);
