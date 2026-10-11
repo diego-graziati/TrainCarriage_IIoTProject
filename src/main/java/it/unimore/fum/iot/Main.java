@@ -1,14 +1,15 @@
 package it.unimore.fum.iot;
 
+import it.unimore.fum.iot.simulation.SimulatedSmartObjectsOrchestrator;
 import it.unimore.fum.iot.simulation.SimulationOrchestrator;
+import it.unimore.fum.iot.utils.Settings;
+import it.unimore.fum.iot.utils.tools.CustomLogFormatter;
 import it.unimore.fum.iot.utils.types.drivers.SimulationActuatorDriver;
 import it.unimore.fum.iot.utils.types.drivers.SimulationSensorDriver;
 import it.unimore.fum.iot.utils.types.simulation.carriage.*;
 
 import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -21,14 +22,14 @@ public class Main {
 
     public static void main(String[] args) {
         MAIN_LOGGER = Logger.getLogger("Main-Logger");
-        PASSENGERS_SIM_LOGGER = Logger.getLogger("Passenger-Sim-Logger");
-        TEMPERATURE_SIM_LOGGER = Logger.getLogger("Temperature-Sim-Logger");
-        CARRIAGE_SIM_LOGGER = Logger.getLogger("Carriage-Sim-Logger");
+        PASSENGERS_SIM_LOGGER = Logger.getLogger(Settings.Simulation.Logs.PASSENGER_LOGGER_NAME);
+        TEMPERATURE_SIM_LOGGER = Logger.getLogger(Settings.Simulation.Logs.TEMPERATURE_LOGGER_NAME);
+        CARRIAGE_SIM_LOGGER = Logger.getLogger(Settings.Simulation.Logs.CARRIAGE_LOGGER_NAME);
 
         try {
             FileHandler fileHandler = new FileHandler("logs/main-log.log");
             MAIN_LOGGER.addHandler(fileHandler);
-            SimpleFormatter formatter = new SimpleFormatter();
+            Formatter formatter = new CustomLogFormatter();
             fileHandler.setFormatter(formatter);
 
             MAIN_LOGGER.info("Main Logger started successfully");
@@ -39,7 +40,7 @@ public class Main {
         try {
             FileHandler fileHandler = new FileHandler("logs/passengers-sim-log.log");
             PASSENGERS_SIM_LOGGER.addHandler(fileHandler);
-            SimpleFormatter formatter = new SimpleFormatter();
+            Formatter formatter = new CustomLogFormatter();
             fileHandler.setFormatter(formatter);
 
             PASSENGERS_SIM_LOGGER.info("Passenger Sim Logger started successfully");
@@ -50,7 +51,7 @@ public class Main {
         try {
             FileHandler fileHandler = new FileHandler("logs/carriage-sim-log.log");
             CARRIAGE_SIM_LOGGER.addHandler(fileHandler);
-            SimpleFormatter formatter = new SimpleFormatter();
+            Formatter formatter = new CustomLogFormatter();
             fileHandler.setFormatter(formatter);
 
             CARRIAGE_SIM_LOGGER.info("Carriage Sim Logger started successfully");
@@ -61,7 +62,7 @@ public class Main {
         try {
             FileHandler fileHandler = new FileHandler("logs/temperature-sim-log.log");
             TEMPERATURE_SIM_LOGGER.addHandler(fileHandler);
-            SimpleFormatter formatter = new SimpleFormatter();
+            Formatter formatter = new CustomLogFormatter();
             fileHandler.setFormatter(formatter);
 
             TEMPERATURE_SIM_LOGGER.info("Logger started successfully");
@@ -85,10 +86,39 @@ public class Main {
         MAIN_LOGGER.info("Simulation started successfully");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            long startingTime = System.nanoTime();
             MAIN_LOGGER.info("Shutting down Simulation");
             simulatedSmartObjectsOrchestrator.stop();
             simulationOrchestrator.stop();
             MAIN_LOGGER.info("Simulations shut down successfully");
+            for (Handler handler : simulatedSmartObjectsOrchestrator.getLoggerGroupsHandlers()) {
+                try {
+                    handler.flush();
+                    handler.close();
+                } catch (Exception e) {
+                    Main.MAIN_LOGGER.severe("Unable to close logger handler: " + e.getMessage());
+                }
+            }
+
+            for (Handler handler: MAIN_LOGGER.getHandlers()) {
+                handler.flush();
+                handler.close();
+            }
+            for (Handler handler: PASSENGERS_SIM_LOGGER.getHandlers()) {
+                handler.flush();
+                handler.close();
+            }
+            for (Handler handler: CARRIAGE_SIM_LOGGER.getHandlers()) {
+                handler.flush();
+                handler.close();
+            }
+            for (Handler handler: TEMPERATURE_SIM_LOGGER.getHandlers()) {
+                handler.flush();
+                handler.close();
+            }
+            long endingTime = System.nanoTime();
+            long deltaTime = endingTime - startingTime;
+            System.out.println("Process took " + deltaTime + " nanoseconds to shutdown");
         }));
     }
 

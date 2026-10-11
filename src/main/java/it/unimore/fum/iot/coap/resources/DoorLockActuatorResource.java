@@ -1,7 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.SeatChargersActuatorModel;
+import it.unimore.fum.iot.models.DoorLockActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -13,44 +13,45 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
-public class SeatChargerActuatorResource extends CoapResource {
+public class DoorLockActuatorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "SeatChargersActuator";
+    private static final String OBJECT_TITLE = "DoorLockActuator";
     private static final Number ACTUATOR_VERSION = 0.1;
 
-    private SeatChargersActuatorModel model = null;
+    private DoorLockActuatorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public SeatChargerActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> seatChargerActuator) {
+    public DoorLockActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> doorLockActuator) {
         super(name);
         this.devideId = deviceId;
 
+        // INIT
         this.gson = new Gson();
-        this.model = new SeatChargersActuatorModel(seatChargerActuator);
+        this.model = new DoorLockActuatorModel(doorLockActuator);
 
-        getAttributes().addAttribute(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.actuator.seat_chargers");
+        getAttributes().setTitle(OBJECT_TITLE);
+        getAttributes().addAttribute("rt", "it.unimore.device.actuator.door-lock");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_A.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
     }
 
     private Optional<String> getJsonSenmlResponse() {
-        try{
+        try {
             SenMLPack senMLPack = new SenMLPack();
 
             SenMLRecord senMLRecord = new SenMLRecord();
             senMLRecord.setBn(this.devideId);
             senMLRecord.setN(this.getName());
             senMLRecord.setBver(ACTUATOR_VERSION);
-            senMLRecord.setVb(this.model.isActive());
-            senMLRecord.setT(this.model.getTimestamp());
+            senMLRecord.setVb(this.model.isLocked());
+            senMLRecord.setT(System.currentTimeMillis());
 
             senMLPack.add(senMLRecord);
 
             return Optional.of(this.gson.toJson(senMLPack));
-        }catch(Exception e){
+        }catch (Exception e) {
             return Optional.empty();
         }
     }
@@ -58,19 +59,19 @@ public class SeatChargerActuatorResource extends CoapResource {
     @Override
     public void handleGET(CoapExchange exchange) {
 
-        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON
-                || exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
+                exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
 
-            Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
+            Optional<String> senMlPayload = getJsonSenmlResponse();
 
-            if (jsonSenmlResponse.isPresent()) {
-                exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+            if (senMlPayload.isPresent()) {
+                exchange.respond(CoAP.ResponseCode.CONTENT, senMlPayload.get(), exchange.getRequestOptions().getAccept());
             } else {
                 exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
             }
-        } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isActive() + "\n"
-                    + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+
+        } else if( exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
+            exchange.respond(CoAP.ResponseCode.CONTENT, String.valueOf(this.model.isLocked()), MediaTypeRegistry.TEXT_PLAIN);
         } else {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
         }
@@ -80,24 +81,21 @@ public class SeatChargerActuatorResource extends CoapResource {
     public void handlePUT(CoapExchange exchange) {
 
         if (exchange.getRequestPayload() != null) {
+            boolean doorLockStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
 
-            boolean seatChargerStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
-
-            this.model.setActive(seatChargerStatus);
+            this.model.setLocked(doorLockStatus);
 
             if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                     exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+                Optional<String> senMlPayload = getJsonSenmlResponse();
 
-                Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
-
-                if (jsonSenmlResponse.isPresent()) {
-                    exchange.respond(CoAP.ResponseCode.CONTENT, jsonSenmlResponse.get(), exchange.getRequestOptions().getAccept());
+                if (senMlPayload.isPresent()) {
+                    exchange.respond(CoAP.ResponseCode.CHANGED, senMlPayload.get(), exchange.getRequestOptions().getAccept());
                 } else {
-                    exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
+                    exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
                 }
             } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isActive() + "\n"
-                        + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
+                exchange.respond(CoAP.ResponseCode.CHANGED, String.valueOf(this.model.isLocked()), MediaTypeRegistry.TEXT_PLAIN);
             } else {
                 exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
             }

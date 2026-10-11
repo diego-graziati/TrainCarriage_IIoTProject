@@ -1,10 +1,10 @@
 package it.unimore.fum.iot.modules.smart_objects;
 
+import it.unimore.fum.iot.coap.resources.*;
 import it.unimore.fum.iot.modules.SmartObjectModule;
-import it.unimore.fum.iot.resources.*;
-import it.unimore.fum.iot.utils.tools.buffers.SingleItemReadWriteBuffer;
 import it.unimore.fum.iot.utils.types.drivers.ActuatorDriver;
 import it.unimore.fum.iot.utils.types.drivers.SensorDriver;
+import org.eclipse.californium.core.network.CoapEndpoint;
 
 public class TemperatureControllerSmartObject extends SmartObjectModule {
 
@@ -17,10 +17,15 @@ public class TemperatureControllerSmartObject extends SmartObjectModule {
                                             SensorDriver<Double> temperatureSensor,
                                             SensorDriver<Double> batteryChargeSensor,
                                             SensorDriver<Double> energyConsumptionSensor,
-                                            String deviceId) {
-        super();
+                                            CoapEndpoint endpoint,
+                                            String deviceId,
+                                            String rdUriInfoConfigPath,
+                                            String loggerGroupName) {
+        super(deviceId, rdUriInfoConfigPath, loggerGroupName);
 
-        //String deviceId = String.format("temperature-controller-%s-%04d", subfix, deviceIndex);
+        if (endpoint != null) {
+            this.addEndpoint(endpoint);
+        }
 
         this.add(new DehumidifierActuatorResource("dehumidifier", deviceId, onOffDehumidifierActuator));
         this.add(new AirTemperatureActuatorResource("air-temperature", deviceId, setTargetTemperatureActuator));
@@ -32,7 +37,21 @@ public class TemperatureControllerSmartObject extends SmartObjectModule {
     }
 
     public static void main(String[] args) {
-        TemperatureControllerSmartObject smartObject = new TemperatureControllerSmartObject(null, null, null, null, null, null, null, null, null, null);
+        TemperatureControllerSmartObject smartObject = new TemperatureControllerSmartObject(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
         smartObject.start();
 
         smartObject.getRoot().getChildren().forEach(resource -> {

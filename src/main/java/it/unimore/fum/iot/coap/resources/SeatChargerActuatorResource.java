@@ -1,7 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.AirVentilationActuatorModel;
+import it.unimore.fum.iot.models.SeatChargersActuatorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -13,25 +13,24 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
-public class AirVentilationActuatorResource extends CoapResource {
+public class SeatChargerActuatorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "AirVentilationActuator";
+    private static final String OBJECT_TITLE = "SeatChargersActuator";
     private static final Number ACTUATOR_VERSION = 0.1;
 
-    private AirVentilationActuatorModel model = null;
+    private SeatChargersActuatorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public AirVentilationActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> onOffAirVentilationActuator) {
+    public SeatChargerActuatorResource(String name, String deviceId, ActuatorDriver<Boolean> seatChargerActuator) {
         super(name);
         this.devideId = deviceId;
 
-        // INIT!
         this.gson = new Gson();
-        this.model = new AirVentilationActuatorModel(onOffAirVentilationActuator);
+        this.model = new SeatChargersActuatorModel(seatChargerActuator);
 
         getAttributes().addAttribute(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.actuator.air_ventilation");
+        getAttributes().addAttribute("rt", "it.unimore.device.actuator.seat_chargers");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_A.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
@@ -39,14 +38,14 @@ public class AirVentilationActuatorResource extends CoapResource {
 
     private Optional<String> getJsonSenmlResponse() {
         try{
-            SenMLPack senMLPack =new SenMLPack();
+            SenMLPack senMLPack = new SenMLPack();
 
             SenMLRecord senMLRecord = new SenMLRecord();
             senMLRecord.setBn(this.devideId);
-            senMLRecord.setBver(ACTUATOR_VERSION);
             senMLRecord.setN(this.getName());
+            senMLRecord.setBver(ACTUATOR_VERSION);
+            senMLRecord.setVb(this.model.isActive());
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setVb(this.model.isOn());
 
             senMLPack.add(senMLRecord);
 
@@ -59,8 +58,8 @@ public class AirVentilationActuatorResource extends CoapResource {
     @Override
     public void handleGET(CoapExchange exchange) {
 
-        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
-                exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
+        if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON
+                || exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
 
             Optional<String> jsonSenmlResponse = getJsonSenmlResponse();
 
@@ -70,7 +69,7 @@ public class AirVentilationActuatorResource extends CoapResource {
                 exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
             }
         } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isActive() + "\n"
                     + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
         } else {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
@@ -82,9 +81,9 @@ public class AirVentilationActuatorResource extends CoapResource {
 
         if (exchange.getRequestPayload() != null) {
 
-            boolean airVentilationStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
+            boolean seatChargerStatus = Boolean.parseBoolean(new String(exchange.getRequestPayload()));
 
-            this.model.setOn(airVentilationStatus);
+            this.model.setActive(seatChargerStatus);
 
             if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                     exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
@@ -97,7 +96,7 @@ public class AirVentilationActuatorResource extends CoapResource {
                     exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
                 }
             } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isOn() + "\n"
+                exchange.respond(CoAP.ResponseCode.CONTENT, this.model.isActive() + "\n"
                         + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
             } else {
                 exchange.respond(CoAP.ResponseCode.BAD_REQUEST);

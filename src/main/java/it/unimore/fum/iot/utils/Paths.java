@@ -1,4 +1,4 @@
-package it.unimore.fum.iot.utils.types.simulation;
+package it.unimore.fum.iot.utils;
 
 public final class Paths {
     public final static String PREFIX = "/";
@@ -37,6 +37,11 @@ public final class Paths {
             public final static String CARRIAGE = Paths.Config.Simulation.PREFIX + "carriage_simulation.json";
             public final static String PASSENGERS = Paths.Config.Simulation.PREFIX + "passengers_simulation.json";
             public final static String TEMPERATURE = Paths.Config.Simulation.PREFIX + "temperature_simulation.json";
+        }
+
+        public final static class CoAP {
+            public final static String PREFIX = Paths.Config.PREFIX + "coap/";
+            public final static String RESOURCE_DIRECTORY = CoAP.PREFIX + "resource_directory.json";
         }
     }
 }

@@ -1,6 +1,6 @@
 package it.unimore.fum.iot.utils.types.simulation.carriage;
 
-import it.unimore.fum.iot.utils.types.simulation.Paths;
+import it.unimore.fum.iot.utils.Paths;
 import it.unimore.fum.iot.utils.types.simulation.defaults.CarriageDefaults;
 
 import java.util.ArrayList;

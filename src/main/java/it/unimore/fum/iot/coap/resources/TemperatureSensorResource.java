@@ -1,7 +1,7 @@
-package it.unimore.fum.iot.resources;
+package it.unimore.fum.iot.coap.resources;
 
 import com.google.gson.Gson;
-import it.unimore.fum.iot.models.VelocitySensorModel;
+import it.unimore.fum.iot.models.TemperatureSensorModel;
 import it.unimore.fum.iot.utils.CoreInterfaces;
 import it.unimore.fum.iot.utils.SenMLPack;
 import it.unimore.fum.iot.utils.SenMLRecord;
@@ -13,28 +13,28 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.util.Optional;
 
-public class VelocitySensorResource extends CoapResource {
+public class TemperatureSensorResource extends CoapResource {
 
-    private static final String OBJECT_TITLE = "VelocitySensor";
+    private static final String OBJECT_TITLE = "TemperatureSensor";
     private static final Number SENSOR_VERSION = 0.1;
 
-    private VelocitySensorModel model = null;
+    private TemperatureSensorModel model = null;
     private String devideId = null;
     private Gson gson = null;
 
-    public VelocitySensorResource(String name, String deviceId, SensorDriver<Double> velocitySensor) {
+    public TemperatureSensorResource(String name, String deviceId, SensorDriver<Double> temperatureSensor) {
         super(name);
         this.devideId = deviceId;
 
         // INIT!
         this.gson = new Gson();
-        this.model = new VelocitySensorModel(velocitySensor);
+        this.model = new TemperatureSensorModel(temperatureSensor);
 
         setObservable(true);
         setObserveType(CoAP.Type.CON);
 
         getAttributes().addAttribute(OBJECT_TITLE);
-        getAttributes().addAttribute("rt", "it.unimore.device.sensor.velocity");
+        getAttributes().addAttribute("rt", "it.unimore.device.sensor.temperature");
         getAttributes().addAttribute("if", CoreInterfaces.CORE_S.getValue());
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.APPLICATION_SENML_JSON));
         getAttributes().addAttribute("ct", Integer.toString(MediaTypeRegistry.TEXT_PLAIN));
@@ -51,8 +51,8 @@ public class VelocitySensorResource extends CoapResource {
             senMLRecord.setN(this.getName());
             senMLRecord.setBver(SENSOR_VERSION);
             senMLRecord.setT(this.model.getTimestamp());
-            senMLRecord.setU(this.model.getVelocityUnit());
-            senMLRecord.setV(this.model.getVelocity());
+            senMLRecord.setU(this.model.getTemperatureUnit());
+            senMLRecord.setV(this.model.getTemperature());
 
             senMLPack.add(senMLRecord);
 
@@ -64,7 +64,6 @@ public class VelocitySensorResource extends CoapResource {
 
     @Override
     public void handleGET(CoapExchange exchange) {
-
         if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_SENML_JSON ||
                 exchange.getRequestOptions().getAccept() == MediaTypeRegistry.APPLICATION_JSON) {
 
@@ -76,8 +75,8 @@ public class VelocitySensorResource extends CoapResource {
                 exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);
             }
         } else if (exchange.getRequestOptions().getAccept() == MediaTypeRegistry.TEXT_PLAIN) {
-            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.getVelocityUnit() + "\n"
-                    + this.model.getVelocity() + "\n"
+            exchange.respond(CoAP.ResponseCode.CONTENT, this.model.getTemperatureUnit() + "\n"
+                    + this.model.getTemperature() + "\n"
                     + this.model.getTimestamp(), exchange.getRequestOptions().getAccept());
         } else {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
